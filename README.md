@@ -19,7 +19,7 @@ A distraction-free Pomodoro timer for Windows, built with Tauri v2.
 
 ## Screenshots
 
-> Coming soon
+![PulsoDoro Focus Mode](docs/screenshot-1.png)
 
 ## Tech Stack
 

@@ -1,0 +1,356 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    color: #e0e0e0;
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    position: relative;
+}
+
+#bg-image {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    transition: background-image 0.5s ease;
+}
+
+#bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+}
+
+#app {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 50px);
+}
+
+#timer-section {
+    text-align: center;
+}
+
+#state-label {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    color: #e94560;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#timer-display {
+    font-size: 6rem;
+    font-weight: 200;
+    letter-spacing: 6px;
+    margin-bottom: 1.5rem;
+    color: #ffffff;
+    text-shadow: 0 0 30px rgba(233, 69, 96, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+#cycle-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: #e94560;
+    border-color: #e94560;
+    box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+}
+
+.dot.completed {
+    background: #533483;
+    border-color: #533483;
+}
+
+#controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+button {
+    padding: 0.6rem 1.5rem;
+    border: 2px solid rgba(233, 69, 96, 0.8);
+    background: rgba(0, 0, 0, 0.3);
+    color: #e94560;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+button:hover:not(:disabled) {
+    background: rgba(233, 69, 96, 0.8);
+    color: #fff;
+}
+
+button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+#break-activity {
+    margin-top: 1.5rem;
+    transition: opacity 0.3s ease;
+}
+
+#activity-card {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 1.5rem 2.5rem;
+    text-align: center;
+}
+
+#activity-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+#activity-text {
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: #ccc;
+}
+
+#bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    z-index: 2;
+}
+
+#music-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#music-toggle, #settings-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ccc;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+#music-toggle:hover, #settings-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+#music-toggle.active {
+    background: rgba(233, 69, 96, 0.3);
+    border-color: #e94560;
+    color: #e94560;
+}
+
+#settings-panel {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#settings-content {
+    background: #1a1a2e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 350px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#settings-content h2 {
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    color: #e94560;
+}
+
+.setting-group {
+    margin-bottom: 1.2rem;
+}
+
+.setting-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-bottom: 0.4rem;
+}
+
+.setting-group input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.setting-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+#bg-picker {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.bg-option {
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #ccc;
+}
+
+.bg-option:hover {
+    border-color: #e94560;
+}
+
+.bg-option.selected {
+    border-color: #e94560;
+    background: rgba(233, 69, 96, 0.2);
+    color: #e94560;
+}
+
+.bg-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bg-file-name {
+    flex: 1;
+    font-size: 0.8rem;
+    color: #888;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pick-btn {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ccc !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+.pick-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.settings-actions button {
+    flex: 1;
+}
+
+#youtube-player-container {
+    position: fixed;
+    bottom: 55px;
+    left: 10px;
+    z-index: 3;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+#youtube-player-container iframe {
+    display: block;
+}
+
+body.short-break #state-label,
+body.short-break #controls button {
+    color: #2ecc71;
+    border-color: rgba(46, 204, 113, 0.8);
+}
+body.short-break #controls button:hover:not(:disabled) {
+    background: rgba(46, 204, 113, 0.8);
+    color: #fff;
+}
+body.short-break .dot.active {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+}
+
+body.long-break #state-label,
+body.long-break #controls button {
+    color: #9b59b6;
+    border-color: rgba(155, 89, 182, 0.8);
+}
+body.long-break #controls button:hover:not(:disabled) {
+    background: rgba(155, 89, 182, 0.8);
+    color: #fff;
+}
+body.long-break .dot.active {
+    background: #9b59b6;
+    border-color: #9b59b6;
+    box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
+}
+
+.hidden {
+    display: none !important;
+}

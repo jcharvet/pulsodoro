@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anime Pomodoro</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+    <div id="bg-image"></div>
+    <div id="bg-overlay"></div>
+
+    <div id="app">
+        <div id="timer-section">
+            <div id="state-label">IDLE</div>
+            <div id="timer-display">25:00</div>
+            <div id="cycle-dots">
+                <span class="dot" data-cycle="1"></span>
+                <span class="dot" data-cycle="2"></span>
+                <span class="dot" data-cycle="3"></span>
+                <span class="dot" data-cycle="4"></span>
+            </div>
+            <div id="controls">
+                <button id="start-btn">Start</button>
+                <button id="pause-btn" disabled>Pause</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+        </div>
+
+        <div id="break-activity" class="hidden">
+            <div id="activity-card">
+                <div id="activity-icon"></div>
+                <div id="activity-text">Take a break!</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-bar">
+        <div id="music-section">
+            <button id="music-toggle" title="Toggle lo-fi music">&#9835; Lo-fi</button>
+        </div>
+        <button id="settings-btn" title="Settings">&#9881;</button>
+    </div>
+
+    <div id="settings-panel" class="hidden">
+        <div id="settings-content">
+            <h2>Settings</h2>
+            <div class="setting-group">
+                <label>Focus (minutes)</label>
+                <input type="number" id="focus-duration" min="1" max="120" value="25" />
+            </div>
+            <div class="setting-group">
+                <label>Short Break (minutes)</label>
+                <input type="number" id="short-break-duration" min="1" max="60" value="5" />
+            </div>
+            <div class="setting-group">
+                <label>Long Break (minutes)</label>
+                <input type="number" id="long-break-duration" min="1" max="60" value="15" />
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="wallpaper-toggle" checked />
+                    Change desktop wallpaper
+                </label>
+            </div>
+            <div class="setting-group">
+                <label>Focus Background</label>
+                <div class="bg-row">
+                    <span id="focus-bg-name" class="bg-file-name">Default gradient</span>
+                    <button id="pick-focus-bg" class="pick-btn">Browse...</button>
+                    <button id="clear-focus-bg" class="pick-btn">Clear</button>
+                </div>
+            </div>
+            <div class="setting-group">
+                <label>Break Background</label>
+                <div class="bg-row">
+                    <span id="break-bg-name" class="bg-file-name">Default gradient</span>
+                    <button id="pick-break-bg" class="pick-btn">Browse...</button>
+                    <button id="clear-break-bg" class="pick-btn">Clear</button>
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button id="save-settings">Save</button>
+                <button id="close-settings">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="youtube-player-container" class="hidden">
+        <div id="youtube-player"></div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

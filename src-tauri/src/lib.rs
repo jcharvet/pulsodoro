@@ -63,6 +63,23 @@ fn save_settings(state: State<AppState>, settings: AppSettings) -> AppSettings {
     current.clone()
 }
 
+#[tauri::command]
+fn load_image(path: String) -> Result<String, String> {
+    let data = std::fs::read(&path).map_err(|e| format!("Failed to read {}: {}", path, e))?;
+    let ext = path.rsplit('.').next().unwrap_or("png").to_lowercase();
+    let mime = match ext.as_str() {
+        "jpg" | "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "bmp" => "image/bmp",
+        _ => "image/png",
+    };
+    use base64::Engine;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&data);
+    Ok(format!("data:{};base64,{}", mime, b64))
+}
+
 fn start_timer_loop(app: AppHandle) {
     std::thread::spawn(move || loop {
         std::thread::sleep(Duration::from_secs(1));
@@ -99,7 +116,7 @@ fn start_timer_loop(app: AppHandle) {
 pub fn run() {
     let config_dir = dirs::config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("anime-pomodoro");
+        .join("pulsodoro");
     let settings = AppSettings::load(&config_dir);
 
     let timer = PomodoroTimer::new();
@@ -189,7 +206,8 @@ pub fn run() {
             reset_timer,
             get_timer_status,
             get_settings,
-            save_settings
+            save_settings,
+            load_image
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

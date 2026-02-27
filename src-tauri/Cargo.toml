@@ -1,10 +1,10 @@
 [package]
-name = "anime-pomodoro"
+name = "pulsodoro"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "anime_pomodoro_lib"
+name = "pulsodoro_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -18,3 +18,4 @@ serde_json = "1"
 wallpaper = "3"
 dirs = "6"
 tauri-plugin-dialog = "2"
+base64 = "0.22"

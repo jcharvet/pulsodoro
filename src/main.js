@@ -1,6 +1,5 @@
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
-const { convertFileSrc } = window.__TAURI__.core;
 const { open } = window.__TAURI__.dialog;
 
 // --- DOM Elements ---
@@ -65,18 +64,33 @@ function hideBreakActivity() {
 let currentBgState = null;
 let savedFocusBg = "";
 let savedBreakBg = "";
+const bgCache = {};
 
-function setBackground(state) {
+async function loadBgDataUrl(path) {
+  if (!path) return "";
+  if (bgCache[path]) return bgCache[path];
+  try {
+    const dataUrl = await invoke("load_image", { path });
+    bgCache[path] = dataUrl;
+    return dataUrl;
+  } catch (e) {
+    console.error("Failed to load image:", e);
+    return "";
+  }
+}
+
+async function setBackground(state) {
   if (state === currentBgState) return;
   currentBgState = state;
 
+  let dataUrl = "";
   if (state === "Focus" && savedFocusBg) {
-    bgImage.style.backgroundImage = `url('${convertFileSrc(savedFocusBg)}')`;
+    dataUrl = await loadBgDataUrl(savedFocusBg);
   } else if ((state === "ShortBreak" || state === "LongBreak") && savedBreakBg) {
-    bgImage.style.backgroundImage = `url('${convertFileSrc(savedBreakBg)}')`;
-  } else {
-    bgImage.style.backgroundImage = "";
+    dataUrl = await loadBgDataUrl(savedBreakBg);
   }
+
+  bgImage.style.backgroundImage = dataUrl ? `url('${dataUrl}')` : "";
 }
 
 // --- YouTube Lo-fi Player ---
@@ -285,7 +299,7 @@ listen("timer-update", (event) => {
 
 listen("timer-notification", (event) => {
   if (Notification.permission === "granted") {
-    new Notification("Anime Pomodoro", { body: event.payload });
+    new Notification("PulsoDoro", { body: event.payload });
   }
 });
 

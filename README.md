@@ -1,16 +1,16 @@
-# PulseDoro
+# PulsoDoro
 
-A distraction-free Pomodoro timer for Windows, built with Tauri v2.
+A distraction-free Pomodoro timer built with Tauri v2.
 
 ![Tauri](https://img.shields.io/badge/Tauri-v2-blue)
 ![Rust](https://img.shields.io/badge/Rust-backend-orange)
-![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)
 
 ## Features
 
 - **Pomodoro Timer** - Classic 25/5/15 cycle with 4-session rounds
 - **Custom Backgrounds** - Set different background images for focus and break sessions
-- **Desktop Wallpaper Switching** - Automatically changes your Windows wallpaper based on timer state
+- **Desktop Wallpaper Switching** - Automatically changes your desktop wallpaper based on timer state
 - **Guided Break Activities** - Random suggestions during breaks (stretch, hydrate, breathe, walk)
 - **Lo-fi Music** - Built-in YouTube lo-fi streams toggle for ambient focus music
 - **System Tray** - Start, pause, reset from the tray without opening the window
@@ -25,22 +25,45 @@ A distraction-free Pomodoro timer for Windows, built with Tauri v2.
 
 - **Frontend:** Vanilla HTML, CSS, JavaScript
 - **Backend:** Rust (Tauri v2)
-- **Desktop Integration:** Windows wallpaper API via `wallpaper` crate
+- **Desktop Integration:** Wallpaper switching via `wallpaper` crate
 - **Build Tool:** Vite
 
 ## Getting Started
 
-### Prerequisites
+### Prerequisites (all platforms)
 
 - [Node.js](https://nodejs.org/) (v18+)
 - [Rust](https://www.rust-lang.org/tools/install) (stable)
-- Windows 10/11
+
+### Windows
+
+No additional dependencies needed. Just install Node.js and Rust.
+
+### Linux (Debian/Ubuntu)
+
+Install the required system libraries:
+
+```bash
+sudo apt install libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+```
+
+### Linux (Fedora)
+
+```bash
+sudo dnf install webkit2gtk4.1-devel openssl-devel gtk3-devel libappindicator-gtk3-devel librsvg2-devel
+```
+
+### Linux (Arch)
+
+```bash
+sudo pacman -S webkit2gtk-4.1 base-devel openssl gtk3 libappindicator-gtk3 librsvg
+```
 
 ### Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/pulsedoro.git
-cd pulsedoro
+git clone https://github.com/jcharvet/pulsodoro.git
+cd pulsodoro
 npm install
 ```
 
@@ -56,7 +79,9 @@ npm run tauri dev
 npm run tauri build
 ```
 
-The installer will be generated in `src-tauri/target/release/bundle/`.
+Installers will be generated in `src-tauri/target/release/bundle/`:
+- **Windows:** `.exe` (NSIS) and `.msi`
+- **Linux:** `.deb` and `.AppImage`
 
 ## Usage
 
@@ -70,18 +95,18 @@ The installer will be generated in `src-tauri/target/release/bundle/`.
 ## Project Structure
 
 ```
-pulsedoro/
+pulsodoro/
 ├── index.html              # Main app layout
 ├── src/
 │   ├── main.js             # Frontend logic (timer UI, settings, music)
-│   └── styles.css           # Dark theme with state-based accent colors
+│   └── styles.css          # Dark theme with state-based accent colors
 ├── src-tauri/
 │   ├── src/
 │   │   ├── main.rs          # Entry point
 │   │   ├── lib.rs           # Tauri setup, commands, tray, timer loop
 │   │   ├── timer.rs         # Pomodoro state machine
 │   │   ├── settings.rs      # Settings persistence (JSON)
-│   │   └── wallpaper_manager.rs  # Windows wallpaper switching
+│   │   └── wallpaper_manager.rs  # Desktop wallpaper switching
 │   ├── capabilities/        # Tauri v2 permissions
 │   ├── resources/wallpapers/ # Bundled wallpaper images
 │   └── tauri.conf.json      # Tauri configuration

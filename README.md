@@ -17,6 +17,10 @@ A distraction-free Pomodoro timer built with Tauri v2.
 - **Configurable Durations** - Adjust focus, short break, and long break lengths
 - **Settings Persistence** - All preferences saved locally as JSON
 
+## Download
+
+**Windows installers** available on the [Releases page](https://github.com/jcharvet/pulsodoro/releases/latest).
+
 ## Screenshots
 
 | Timer | Settings |

@@ -35,6 +35,7 @@ const soundToggle = document.getElementById("sound-toggle");
 const youtubeUrlInput = document.getElementById("youtube-url");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
@@ -43,19 +44,42 @@ let soundEnabled = true;
 let alwaysOnTop = false;
 
 // --- Sound Alert ---
-function playChime() {
+async function playChime() {
   const ctx = new AudioContext();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(880, ctx.currentTime);
-  osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
-  gain.gain.setValueAtTime(0.3, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(ctx.currentTime);
-  osc.stop(ctx.currentTime + 0.5);
+  if (ctx.state === "suspended") await ctx.resume();
+  const t = ctx.currentTime;
+
+  // Three-note chime: C6 → E6 → G6
+  const notes = [
+    { freq: 1047, start: 0, dur: 0.4 },
+    { freq: 1319, start: 0.15, dur: 0.4 },
+    { freq: 1568, start: 0.3, dur: 0.6 },
+  ];
+
+  notes.forEach(({ freq, start, dur }) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.25, t + start);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + start + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t + start);
+    osc.stop(t + start + dur);
+
+    // Add a harmonic for a richer bell sound
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.value = freq * 2;
+    gain2.gain.setValueAtTime(0.08, t + start);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + start + dur * 0.7);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(t + start);
+    osc2.stop(t + start + dur);
+  });
 }
 
 // --- Break Activities ---
@@ -272,6 +296,16 @@ pinBtn.addEventListener("click", () => {
   setAlwaysOnTop(!alwaysOnTop);
 });
 
+// --- Fullscreen ---
+async function toggleFullscreen() {
+  const win = getCurrentWindow();
+  const isFullscreen = await win.isFullscreen();
+  await win.setFullscreen(!isFullscreen);
+  fullscreenBtn.classList.toggle("active", !isFullscreen);
+}
+
+fullscreenBtn.addEventListener("click", toggleFullscreen);
+
 // --- Settings Panel ---
 function fileNameFromPath(path) {
   if (!path) return "Default gradient";
@@ -390,6 +424,13 @@ listen("timer-notification", (event) => {
 
 // --- Keyboard Shortcuts ---
 document.addEventListener("keydown", async (e) => {
+  // F11 fullscreen works regardless of context
+  if (e.code === "F11") {
+    e.preventDefault();
+    toggleFullscreen();
+    return;
+  }
+
   // Skip when settings panel is open or typing in an input
   if (!settingsPanel.classList.contains("hidden")) return;
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;

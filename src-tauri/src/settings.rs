@@ -28,7 +28,7 @@ impl Default for AppSettings {
             focus_minutes: 25,
             short_break_minutes: 5,
             long_break_minutes: 15,
-            change_wallpaper: true,
+            change_wallpaper: false,
             focus_background: String::new(),
             break_background: String::new(),
             sound_enabled: true,

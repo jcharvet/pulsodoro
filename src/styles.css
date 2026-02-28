@@ -179,7 +179,7 @@ button:disabled {
     gap: 0.5rem;
 }
 
-#music-toggle, #settings-btn, #pin-btn {
+#music-toggle, #settings-btn, #pin-btn, #fullscreen-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ccc;
@@ -191,12 +191,12 @@ button:disabled {
     letter-spacing: 0;
 }
 
-#music-toggle:hover, #settings-btn:hover, #pin-btn:hover {
+#music-toggle:hover, #settings-btn:hover, #pin-btn:hover, #fullscreen-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
 }
 
-#music-toggle.active, #pin-btn.active {
+#music-toggle.active, #pin-btn.active, #fullscreen-btn.active {
     background: rgba(233, 69, 96, 0.3);
     border-color: #e94560;
     color: #e94560;

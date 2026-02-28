@@ -1,6 +1,6 @@
 # PulsoDoro
 
-A distraction-free Pomodoro timer built with Tauri v2.
+A distraction-free Pomodoro timer built with Tauri v2 by [DHJVC Labs](https://dhjvc.com).
 
 ![Tauri](https://img.shields.io/badge/Tauri-v2-blue)
 ![Rust](https://img.shields.io/badge/Rust-backend-orange)

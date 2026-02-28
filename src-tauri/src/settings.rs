@@ -10,6 +10,16 @@ pub struct AppSettings {
     pub change_wallpaper: bool,
     pub focus_background: String,
     pub break_background: String,
+    #[serde(default = "default_true")]
+    pub sound_enabled: bool,
+    #[serde(default)]
+    pub custom_youtube_id: String,
+    #[serde(default)]
+    pub always_on_top: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl Default for AppSettings {
@@ -21,6 +31,9 @@ impl Default for AppSettings {
             change_wallpaper: true,
             focus_background: String::new(),
             break_background: String::new(),
+            sound_enabled: true,
+            custom_youtube_id: String::new(),
+            always_on_top: false,
         }
     }
 }

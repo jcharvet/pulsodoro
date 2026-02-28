@@ -119,6 +119,20 @@ button:disabled {
     cursor: not-allowed;
 }
 
+#controls kbd {
+    display: inline-block;
+    font-family: inherit;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    margin-left: 0.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.5);
+    vertical-align: middle;
+    line-height: 1;
+}
+
 #break-activity {
     margin-top: 1.5rem;
     transition: opacity 0.3s ease;
@@ -165,7 +179,7 @@ button:disabled {
     gap: 0.5rem;
 }
 
-#music-toggle, #settings-btn {
+#music-toggle, #settings-btn, #pin-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ccc;
@@ -177,12 +191,12 @@ button:disabled {
     letter-spacing: 0;
 }
 
-#music-toggle:hover, #settings-btn:hover {
+#music-toggle:hover, #settings-btn:hover, #pin-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
 }
 
-#music-toggle.active {
+#music-toggle.active, #pin-btn.active {
     background: rgba(233, 69, 96, 0.3);
     border-color: #e94560;
     color: #e94560;
@@ -227,7 +241,8 @@ button:disabled {
     margin-bottom: 0.4rem;
 }
 
-.setting-group input[type="number"] {
+.setting-group input[type="number"],
+.setting-group input[type="text"] {
     width: 100%;
     padding: 0.5rem;
     background: rgba(255, 255, 255, 0.05);

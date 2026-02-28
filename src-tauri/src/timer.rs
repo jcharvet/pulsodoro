@@ -119,6 +119,43 @@ impl PomodoroTimer {
         Some(new_state)
     }
 
+    pub fn skip(&self) -> Option<TimerState> {
+        let mut status = self.status.lock().unwrap();
+        if status.state == TimerState::Idle {
+            return None;
+        }
+
+        let new_state = match status.state {
+            TimerState::Focus => {
+                if status.cycle >= 4 {
+                    TimerState::LongBreak
+                } else {
+                    TimerState::ShortBreak
+                }
+            }
+            TimerState::ShortBreak => {
+                status.cycle += 1;
+                TimerState::Focus
+            }
+            TimerState::LongBreak => {
+                status.cycle = 1;
+                TimerState::Focus
+            }
+            TimerState::Idle => return None,
+        };
+
+        let durations = self.durations.lock().unwrap();
+        status.state = new_state;
+        status.remaining_secs = match new_state {
+            TimerState::Focus => durations.focus,
+            TimerState::ShortBreak => durations.short_break,
+            TimerState::LongBreak => durations.long_break,
+            TimerState::Idle => 0,
+        };
+
+        Some(new_state)
+    }
+
     pub fn get_status(&self) -> TimerStatus {
         self.status.lock().unwrap().clone()
     }

@@ -1,6 +1,7 @@
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 const { open } = window.__TAURI__.dialog;
+const { getCurrentWindow } = window.__TAURI__.window;
 
 // --- DOM Elements ---
 const stateLabel = document.getElementById("state-label");
@@ -8,6 +9,7 @@ const timerDisplay = document.getElementById("timer-display");
 const startBtn = document.getElementById("start-btn");
 const pauseBtn = document.getElementById("pause-btn");
 const resetBtn = document.getElementById("reset-btn");
+const skipBtn = document.getElementById("skip-btn");
 const dots = document.querySelectorAll(".dot");
 const bgImage = document.getElementById("bg-image");
 const breakActivity = document.getElementById("break-activity");
@@ -29,10 +31,32 @@ const pickBreakBg = document.getElementById("pick-break-bg");
 const clearBreakBg = document.getElementById("clear-break-bg");
 const focusBgName = document.getElementById("focus-bg-name");
 const breakBgName = document.getElementById("break-bg-name");
+const soundToggle = document.getElementById("sound-toggle");
+const youtubeUrlInput = document.getElementById("youtube-url");
+const pinBtn = document.getElementById("pin-btn");
+const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
 let pendingBreakBg = "";
+let soundEnabled = true;
+let alwaysOnTop = false;
+
+// --- Sound Alert ---
+function playChime() {
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(880, ctx.currentTime);
+  osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.3, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + 0.5);
+}
 
 // --- Break Activities ---
 const BREAK_ACTIVITIES = [
@@ -102,6 +126,31 @@ const LOFI_STREAMS = [
 
 let youtubePlayer = null;
 let musicPlaying = false;
+let customYouTubeId = "";
+
+function extractYouTubeId(input) {
+  if (!input) return "";
+  const trimmed = input.trim();
+  // Already a bare video ID (11 chars, alphanumeric + - _)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  // URL patterns
+  const patterns = [
+    /(?:youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/,
+    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = trimmed.match(p);
+    if (m) return m[1];
+  }
+  return "";
+}
+
+function getYouTubeVideoId() {
+  if (customYouTubeId) return customYouTubeId;
+  return LOFI_STREAMS[Math.floor(Math.random() * LOFI_STREAMS.length)];
+}
 
 function loadYouTubeAPI() {
   const tag = document.createElement("script");
@@ -110,8 +159,7 @@ function loadYouTubeAPI() {
 }
 
 window.onYouTubeIframeAPIReady = function () {
-  const videoId =
-    LOFI_STREAMS[Math.floor(Math.random() * LOFI_STREAMS.length)];
+  const videoId = getYouTubeVideoId();
   youtubePlayer = new YT.Player("youtube-player", {
     height: "60",
     width: "200",
@@ -208,6 +256,22 @@ resetBtn.addEventListener("click", async () => {
   updateUI(status);
 });
 
+skipBtn.addEventListener("click", async () => {
+  const status = await invoke("skip_timer");
+  updateUI(status);
+});
+
+// --- Always on Top ---
+async function setAlwaysOnTop(value) {
+  alwaysOnTop = value;
+  await getCurrentWindow().setAlwaysOnTop(value);
+  pinBtn.classList.toggle("active", value);
+}
+
+pinBtn.addEventListener("click", () => {
+  setAlwaysOnTop(!alwaysOnTop);
+});
+
 // --- Settings Panel ---
 function fileNameFromPath(path) {
   if (!path) return "Default gradient";
@@ -260,6 +324,9 @@ settingsBtn.addEventListener("click", async () => {
   shortBreakInput.value = settings.short_break_minutes;
   longBreakInput.value = settings.long_break_minutes;
   wallpaperToggle.checked = settings.change_wallpaper;
+  soundToggle.checked = settings.sound_enabled;
+  youtubeUrlInput.value = settings.custom_youtube_id;
+  alwaysOnTopToggle.checked = settings.always_on_top;
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -273,12 +340,29 @@ saveSettingsBtn.addEventListener("click", async () => {
     short_break_minutes: parseInt(shortBreakInput.value) || 5,
     long_break_minutes: parseInt(longBreakInput.value) || 15,
     change_wallpaper: wallpaperToggle.checked,
+    sound_enabled: soundToggle.checked,
+    custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
+    always_on_top: alwaysOnTopToggle.checked,
     focus_background: pendingFocusBg,
     break_background: pendingBreakBg,
   };
   await invoke("save_settings", { settings });
 
-  // Apply new backgrounds immediately
+  // Apply new settings immediately
+  soundEnabled = soundToggle.checked;
+  setAlwaysOnTop(alwaysOnTopToggle.checked);
+  const newYtId = extractYouTubeId(youtubeUrlInput.value);
+  if (newYtId !== customYouTubeId) {
+    customYouTubeId = newYtId;
+    if (youtubePlayer && typeof youtubePlayer.cueVideoById === "function") {
+      const vid = getYouTubeVideoId();
+      if (musicPlaying) {
+        youtubePlayer.loadVideoById({ videoId: vid });
+      } else {
+        youtubePlayer.cueVideoById({ videoId: vid });
+      }
+    }
+  }
   savedFocusBg = pendingFocusBg;
   savedBreakBg = pendingBreakBg;
   currentBgState = null; // Force refresh
@@ -298,8 +382,36 @@ listen("timer-update", (event) => {
 });
 
 listen("timer-notification", (event) => {
+  if (soundEnabled) playChime();
   if (Notification.permission === "granted") {
     new Notification("PulsoDoro", { body: event.payload });
+  }
+});
+
+// --- Keyboard Shortcuts ---
+document.addEventListener("keydown", async (e) => {
+  // Skip when settings panel is open or typing in an input
+  if (!settingsPanel.classList.contains("hidden")) return;
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+  switch (e.code) {
+    case "Space":
+      e.preventDefault();
+      {
+        const status = await invoke("get_timer_status");
+        if (status.is_running) {
+          updateUI(await invoke("pause_timer"));
+        } else {
+          updateUI(await invoke("start_timer"));
+        }
+      }
+      break;
+    case "KeyR":
+      updateUI(await invoke("reset_timer"));
+      break;
+    case "KeyS":
+      updateUI(await invoke("skip_timer"));
+      break;
   }
 });
 
@@ -313,6 +425,9 @@ async function init() {
   const settings = await invoke("get_settings");
   savedFocusBg = settings.focus_background;
   savedBreakBg = settings.break_background;
+  soundEnabled = settings.sound_enabled;
+  customYouTubeId = settings.custom_youtube_id || "";
+  if (settings.always_on_top) setAlwaysOnTop(true);
 
   const status = await invoke("get_timer_status");
   updateUI(status);

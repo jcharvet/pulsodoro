@@ -41,6 +41,29 @@ fn reset_timer(state: State<AppState>, _app: AppHandle) -> TimerStatus {
 }
 
 #[tauri::command]
+fn skip_timer(state: State<AppState>, app: AppHandle) -> TimerStatus {
+    if let Some(new_state) = state.timer.skip() {
+        let change_wallpaper = state.settings.lock().unwrap().change_wallpaper;
+        if change_wallpaper {
+            state
+                .wallpaper
+                .lock()
+                .unwrap()
+                .set_wallpaper_for_state(&app, new_state);
+        }
+
+        let message = match new_state {
+            timer::TimerState::Focus => "Focus time! Let's get to work.",
+            timer::TimerState::ShortBreak => "Short break! Take a breather.",
+            timer::TimerState::LongBreak => "Long break! You've earned it.",
+            timer::TimerState::Idle => "Timer stopped.",
+        };
+        let _ = app.emit("timer-notification", message);
+    }
+    state.timer.get_status()
+}
+
+#[tauri::command]
 fn get_timer_status(state: State<AppState>) -> TimerStatus {
     state.timer.get_status()
 }
@@ -204,6 +227,7 @@ pub fn run() {
             start_timer,
             pause_timer,
             reset_timer,
+            skip_timer,
             get_timer_status,
             get_settings,
             save_settings,

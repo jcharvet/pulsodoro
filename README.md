@@ -25,7 +25,7 @@ A distraction-free Pomodoro timer built with Tauri v2.
 
 | Timer | Settings |
 |-------|----------|
-| ![PulsoDoro Focus Mode](docs/screenshot-1.png) | ![PulsoDoro Settings](docs/2026-02-27%2021_19_48-PulsoDoro-settings.png) |
+| ![PulsoDoro Focus Mode](docs/pulsedoro-v0.2.png) | ![PulsoDoro Settings](docs/settings-v0.2.png) |
 
 ## Tech Stack
 

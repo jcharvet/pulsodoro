@@ -4,3 +4,5 @@ dist/
 app-icon.png
 TODO.md
 dev.bat
+docs/plans/
+.claude/

@@ -16,6 +16,8 @@ pub struct AppSettings {
     pub custom_youtube_id: String,
     #[serde(default)]
     pub always_on_top: bool,
+    #[serde(default = "default_true")]
+    pub show_progress_ring: bool,
 }
 
 fn default_true() -> bool {
@@ -34,6 +36,7 @@ impl Default for AppSettings {
             sound_enabled: true,
             custom_youtube_id: String::new(),
             always_on_top: false,
+            show_progress_ring: true,
         }
     }
 }

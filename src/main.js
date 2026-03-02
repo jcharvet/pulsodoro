@@ -63,10 +63,13 @@ const soundToggle = document.getElementById("sound-toggle");
 const youtubeUrlInput = document.getElementById("youtube-url");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
+const progressRingToggle = document.getElementById("progress-ring-toggle");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
+const progressRingSvg = document.getElementById("progress-ring");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
+let showProgressRing = true;
 let pendingBreakBg = "";
 let soundEnabled = true;
 let alwaysOnTop = false;
@@ -413,6 +416,7 @@ settingsBtn.addEventListener("click", async () => {
   soundToggle.checked = settings.sound_enabled;
   youtubeUrlInput.value = settings.custom_youtube_id;
   alwaysOnTopToggle.checked = settings.always_on_top;
+  progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -429,6 +433,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
     always_on_top: alwaysOnTopToggle.checked,
+    show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
     break_background: pendingBreakBg,
   };
@@ -436,6 +441,8 @@ saveSettingsBtn.addEventListener("click", async () => {
 
   // Apply new settings immediately
   soundEnabled = soundToggle.checked;
+  showProgressRing = progressRingToggle.checked;
+  progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   setAlwaysOnTop(alwaysOnTopToggle.checked);
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
@@ -520,6 +527,8 @@ async function init() {
   savedBreakBg = settings.break_background;
   soundEnabled = settings.sound_enabled;
   customYouTubeId = settings.custom_youtube_id || "";
+  showProgressRing = settings.show_progress_ring !== false;
+  progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);
 
   const status = await invoke("get_timer_status");

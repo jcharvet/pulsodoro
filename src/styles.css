@@ -80,12 +80,13 @@ body {
 
 .ring-progress {
     transition: stroke-dashoffset 1s linear, stroke 0.5s ease, filter 0.5s ease;
-    filter: drop-shadow(0 0 8px rgba(233, 69, 96, 0.4));
+    filter: drop-shadow(0 0 4px rgba(233, 69, 96, 0.25));
+    opacity: 0.7;
 }
 
 .ring-endpoint {
     transition: fill 0.5s ease, cx 0.15s linear, cy 0.15s linear;
-    filter: drop-shadow(0 0 6px rgba(233, 69, 96, 0.6));
+    filter: drop-shadow(0 0 3px rgba(233, 69, 96, 0.35));
 }
 
 /* Endpoint pulse animation */
@@ -101,22 +102,26 @@ body {
 /* State colors for ring */
 body.short-break .ring-progress {
     stroke: #2ecc71;
-    filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.4));
+    filter: drop-shadow(0 0 4px rgba(46, 204, 113, 0.25));
 }
 
 body.short-break .ring-endpoint {
     fill: #2ecc71;
-    filter: drop-shadow(0 0 6px rgba(46, 204, 113, 0.6));
+    filter: drop-shadow(0 0 3px rgba(46, 204, 113, 0.35));
 }
 
 body.long-break .ring-progress {
     stroke: #9b59b6;
-    filter: drop-shadow(0 0 8px rgba(155, 89, 182, 0.4));
+    filter: drop-shadow(0 0 4px rgba(155, 89, 182, 0.25));
 }
 
 body.long-break .ring-endpoint {
     fill: #9b59b6;
-    filter: drop-shadow(0 0 6px rgba(155, 89, 182, 0.6));
+    filter: drop-shadow(0 0 3px rgba(155, 89, 182, 0.35));
+}
+
+#progress-ring.ring-hidden {
+    display: none;
 }
 
 #state-label {

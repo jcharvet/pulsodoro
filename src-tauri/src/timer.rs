@@ -55,6 +55,43 @@ impl PomodoroTimer {
         }
     }
 
+    fn transition_to_next_state(
+        &self,
+        status: &mut std::sync::MutexGuard<TimerStatus>,
+    ) -> Option<TimerState> {
+        let new_state = match status.state {
+            TimerState::Focus => {
+                if status.cycle >= 4 {
+                    TimerState::LongBreak
+                } else {
+                    TimerState::ShortBreak
+                }
+            }
+            TimerState::ShortBreak => {
+                status.cycle += 1;
+                TimerState::Focus
+            }
+            TimerState::LongBreak => {
+                status.cycle = 1;
+                TimerState::Focus
+            }
+            TimerState::Idle => return None,
+        };
+
+        let durations = self.durations.lock().unwrap();
+        status.state = new_state;
+        let dur = match new_state {
+            TimerState::Focus => durations.focus,
+            TimerState::ShortBreak => durations.short_break,
+            TimerState::LongBreak => durations.long_break,
+            TimerState::Idle => 0,
+        };
+        status.remaining_secs = dur;
+        status.total_secs = dur;
+
+        Some(new_state)
+    }
+
     pub fn start(&self) {
         let mut status = self.status.lock().unwrap();
         if status.state == TimerState::Idle {
@@ -94,37 +131,7 @@ impl PomodoroTimer {
             return None;
         }
 
-        let new_state = match status.state {
-            TimerState::Focus => {
-                if status.cycle >= 4 {
-                    TimerState::LongBreak
-                } else {
-                    TimerState::ShortBreak
-                }
-            }
-            TimerState::ShortBreak => {
-                status.cycle += 1;
-                TimerState::Focus
-            }
-            TimerState::LongBreak => {
-                status.cycle = 1;
-                TimerState::Focus
-            }
-            TimerState::Idle => return None,
-        };
-
-        let durations = self.durations.lock().unwrap();
-        status.state = new_state;
-        let dur = match new_state {
-            TimerState::Focus => durations.focus,
-            TimerState::ShortBreak => durations.short_break,
-            TimerState::LongBreak => durations.long_break,
-            TimerState::Idle => 0,
-        };
-        status.remaining_secs = dur;
-        status.total_secs = dur;
-
-        Some(new_state)
+        self.transition_to_next_state(&mut status)
     }
 
     pub fn skip(&self) -> Option<TimerState> {
@@ -133,37 +140,7 @@ impl PomodoroTimer {
             return None;
         }
 
-        let new_state = match status.state {
-            TimerState::Focus => {
-                if status.cycle >= 4 {
-                    TimerState::LongBreak
-                } else {
-                    TimerState::ShortBreak
-                }
-            }
-            TimerState::ShortBreak => {
-                status.cycle += 1;
-                TimerState::Focus
-            }
-            TimerState::LongBreak => {
-                status.cycle = 1;
-                TimerState::Focus
-            }
-            TimerState::Idle => return None,
-        };
-
-        let durations = self.durations.lock().unwrap();
-        status.state = new_state;
-        let dur = match new_state {
-            TimerState::Focus => durations.focus,
-            TimerState::ShortBreak => durations.short_break,
-            TimerState::LongBreak => durations.long_break,
-            TimerState::Idle => 0,
-        };
-        status.remaining_secs = dur;
-        status.total_secs = dur;
-
-        Some(new_state)
+        self.transition_to_next_state(&mut status)
     }
 
     pub fn get_status(&self) -> TimerStatus {

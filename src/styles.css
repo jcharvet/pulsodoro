@@ -1,3 +1,12 @@
+:root {
+    --focus-color: #e94560;
+    --focus-color-rgb: 233, 69, 96;
+    --short-break-color: #2ecc71;
+    --short-break-color-rgb: 46, 204, 113;
+    --long-break-color: #9b59b6;
+    --long-break-color-rgb: 155, 89, 182;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -80,13 +89,13 @@ body {
 
 .ring-progress {
     transition: stroke-dashoffset 1s linear, stroke 0.5s ease, filter 0.5s ease;
-    filter: drop-shadow(0 0 4px rgba(233, 69, 96, 0.25));
+    filter: drop-shadow(0 0 4px rgba(var(--focus-color-rgb), 0.25));
     opacity: 0.7;
 }
 
 .ring-endpoint {
     transition: fill 0.5s ease, cx 0.15s linear, cy 0.15s linear;
-    filter: drop-shadow(0 0 3px rgba(233, 69, 96, 0.35));
+    filter: drop-shadow(0 0 3px rgba(var(--focus-color-rgb), 0.35));
 }
 
 /* Endpoint pulse animation */
@@ -101,23 +110,23 @@ body {
 
 /* State colors for ring */
 body.short-break .ring-progress {
-    stroke: #2ecc71;
-    filter: drop-shadow(0 0 4px rgba(46, 204, 113, 0.25));
+    stroke: var(--short-break-color);
+    filter: drop-shadow(0 0 4px rgba(var(--short-break-color-rgb), 0.25));
 }
 
 body.short-break .ring-endpoint {
-    fill: #2ecc71;
-    filter: drop-shadow(0 0 3px rgba(46, 204, 113, 0.35));
+    fill: var(--short-break-color);
+    filter: drop-shadow(0 0 3px rgba(var(--short-break-color-rgb), 0.35));
 }
 
 body.long-break .ring-progress {
-    stroke: #9b59b6;
-    filter: drop-shadow(0 0 4px rgba(155, 89, 182, 0.25));
+    stroke: var(--long-break-color);
+    filter: drop-shadow(0 0 4px rgba(var(--long-break-color-rgb), 0.25));
 }
 
 body.long-break .ring-endpoint {
-    fill: #9b59b6;
-    filter: drop-shadow(0 0 3px rgba(155, 89, 182, 0.35));
+    fill: var(--long-break-color);
+    filter: drop-shadow(0 0 3px rgba(var(--long-break-color-rgb), 0.35));
 }
 
 #progress-ring.ring-hidden {
@@ -128,7 +137,7 @@ body.long-break .ring-endpoint {
     font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 6px;
-    color: #e94560;
+    color: var(--focus-color);
     margin-bottom: 0.5rem;
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
@@ -139,7 +148,7 @@ body.long-break .ring-endpoint {
     letter-spacing: 6px;
     margin-bottom: 1.5rem;
     color: #ffffff;
-    text-shadow: 0 0 30px rgba(233, 69, 96, 0.4), 0 2px 10px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 30px rgba(var(--focus-color-rgb), 0.4), 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 #cycle-dots {
@@ -159,9 +168,9 @@ body.long-break .ring-endpoint {
 }
 
 .dot.active {
-    background: #e94560;
-    border-color: #e94560;
-    box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+    background: var(--focus-color);
+    border-color: var(--focus-color);
+    box-shadow: 0 0 10px rgba(var(--focus-color-rgb), 0.5);
 }
 
 .dot.completed {
@@ -178,9 +187,9 @@ body.long-break .ring-endpoint {
 
 button {
     padding: 0.6rem 1.5rem;
-    border: 2px solid rgba(233, 69, 96, 0.8);
+    border: 2px solid rgba(var(--focus-color-rgb), 0.8);
     background: rgba(0, 0, 0, 0.3);
-    color: #e94560;
+    color: var(--focus-color);
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -191,7 +200,7 @@ button {
 }
 
 button:hover:not(:disabled) {
-    background: rgba(233, 69, 96, 0.8);
+    background: rgba(var(--focus-color-rgb), 0.8);
     color: #fff;
 }
 
@@ -284,9 +293,9 @@ button:disabled {
 }
 
 #music-toggle.active, #pin-btn.active, #fullscreen-btn.active {
-    background: rgba(233, 69, 96, 0.3);
-    border-color: #e94560;
-    color: #e94560;
+    background: rgba(var(--focus-color-rgb), 0.3);
+    border-color: var(--focus-color);
+    color: var(--focus-color);
 }
 
 #settings-panel {
@@ -314,7 +323,7 @@ button:disabled {
     margin-bottom: 1.5rem;
     font-weight: 400;
     letter-spacing: 2px;
-    color: #e94560;
+    color: var(--focus-color);
 }
 
 .setting-group {
@@ -360,13 +369,13 @@ button:disabled {
 }
 
 .bg-option:hover {
-    border-color: #e94560;
+    border-color: var(--focus-color);
 }
 
 .bg-option.selected {
-    border-color: #e94560;
-    background: rgba(233, 69, 96, 0.2);
-    color: #e94560;
+    border-color: var(--focus-color);
+    background: rgba(var(--focus-color-rgb), 0.2);
+    color: var(--focus-color);
 }
 
 .bg-row {
@@ -425,32 +434,32 @@ button:disabled {
 
 body.short-break #state-label,
 body.short-break #controls button {
-    color: #2ecc71;
-    border-color: rgba(46, 204, 113, 0.8);
+    color: var(--short-break-color);
+    border-color: rgba(var(--short-break-color-rgb), 0.8);
 }
 body.short-break #controls button:hover:not(:disabled) {
-    background: rgba(46, 204, 113, 0.8);
+    background: rgba(var(--short-break-color-rgb), 0.8);
     color: #fff;
 }
 body.short-break .dot.active {
-    background: #2ecc71;
-    border-color: #2ecc71;
-    box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+    background: var(--short-break-color);
+    border-color: var(--short-break-color);
+    box-shadow: 0 0 10px rgba(var(--short-break-color-rgb), 0.5);
 }
 
 body.long-break #state-label,
 body.long-break #controls button {
-    color: #9b59b6;
-    border-color: rgba(155, 89, 182, 0.8);
+    color: var(--long-break-color);
+    border-color: rgba(var(--long-break-color-rgb), 0.8);
 }
 body.long-break #controls button:hover:not(:disabled) {
-    background: rgba(155, 89, 182, 0.8);
+    background: rgba(var(--long-break-color-rgb), 0.8);
     color: #fff;
 }
 body.long-break .dot.active {
-    background: #9b59b6;
-    border-color: #9b59b6;
-    box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
+    background: var(--long-break-color);
+    border-color: var(--long-break-color);
+    box-shadow: 0 0 10px rgba(var(--long-break-color-rgb), 0.5);
 }
 
 .hidden {

@@ -24,8 +24,8 @@ const RING_CENTER = 150;
 for (let i = 0; i < 60; i++) {
   const angle = (i * 6 - 90) * (Math.PI / 180); // -90 to start at 12 o'clock
   const isMajor = i % 5 === 0;
-  const innerR = 136;
-  const outerR = isMajor ? 148 : 145;
+  const innerR = RING_RADIUS + 6;
+  const outerR = isMajor ? RING_RADIUS + 18 : RING_RADIUS + 15;
   const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
   line.setAttribute("x1", RING_CENTER + innerR * Math.cos(angle));
   line.setAttribute("y1", RING_CENTER + innerR * Math.sin(angle));
@@ -534,7 +534,7 @@ async function init() {
   savedBreakBg = settings.break_background;
   soundEnabled = settings.sound_enabled;
   customYouTubeId = settings.custom_youtube_id || "";
-  showProgressRing = settings.show_progress_ring !== false;
+  showProgressRing = settings.show_progress_ring ?? true;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);
 

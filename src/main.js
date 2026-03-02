@@ -66,6 +66,7 @@ const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const progressRingSvg = document.getElementById("progress-ring");
+const statsDisplay = document.getElementById("stats-display");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
@@ -476,6 +477,7 @@ listen("timer-update", (event) => {
 
 listen("timer-notification", (event) => {
   if (soundEnabled) playChime();
+  refreshStats();
   if (Notification.permission === "granted") {
     new Notification("PulsoDoro", { body: event.payload });
   }
@@ -520,6 +522,11 @@ if ("Notification" in window) {
   Notification.requestPermission();
 }
 
+async function refreshStats() {
+  const stats = await invoke("get_stats");
+  statsDisplay.textContent = `Today: ${stats.today} | Week: ${stats.week}`;
+}
+
 // Load settings and apply backgrounds on startup
 async function init() {
   const settings = await invoke("get_settings");
@@ -533,6 +540,7 @@ async function init() {
 
   const status = await invoke("get_timer_status");
   updateUI(status);
+  await refreshStats();
   setBackground(status.state);
 }
 

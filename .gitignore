@@ -3,3 +3,4 @@ src-tauri/target/
 dist/
 app-icon.png
 TODO.md
+dev.bat

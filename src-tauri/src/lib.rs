@@ -59,7 +59,7 @@ fn skip_timer(state: State<AppState>, app: AppHandle) -> TimerStatus {
             timer::TimerState::Focus => "Focus time! Let's get to work.",
             timer::TimerState::ShortBreak => "Short break! Take a breather.",
             timer::TimerState::LongBreak => "Long break! You've earned it.",
-            timer::TimerState::Idle => "Timer stopped.",
+            timer::TimerState::Idle => unreachable!("transition_to_next_state never returns Idle"),
         };
         let _ = app.emit("timer-notification", message);
     }
@@ -140,7 +140,7 @@ fn start_timer_loop(app: AppHandle) {
                 timer::TimerState::Focus => "Focus time! Let's get to work.",
                 timer::TimerState::ShortBreak => "Short break! Take a breather.",
                 timer::TimerState::LongBreak => "Long break! You've earned it.",
-                timer::TimerState::Idle => "Timer stopped.",
+                timer::TimerState::Idle => unreachable!("transition_to_next_state never returns Idle"),
             };
 
             let _ = app.emit("timer-notification", message);

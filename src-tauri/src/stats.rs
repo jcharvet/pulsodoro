@@ -27,8 +27,20 @@ impl SessionStats {
 
     pub fn save(&self, config_dir: &PathBuf) {
         let path = config_dir.join("stats.json");
-        let _ = fs::create_dir_all(config_dir);
-        let _ = fs::write(&path, serde_json::to_string_pretty(self).unwrap_or_default());
+        if let Err(e) = fs::create_dir_all(config_dir) {
+            eprintln!("[ERROR] Failed to create config directory: {}", e);
+            return;
+        }
+        match serde_json::to_string_pretty(self) {
+            Ok(json) => {
+                if let Err(e) = fs::write(&path, json) {
+                    eprintln!("[ERROR] Failed to write stats to file: {}", e);
+                }
+            }
+            Err(e) => {
+                eprintln!("[ERROR] Failed to serialize stats: {}", e);
+            }
+        }
     }
 
     pub fn record_completion(&mut self, config_dir: &PathBuf) {
@@ -37,27 +49,20 @@ impl SessionStats {
         self.save(config_dir);
     }
 
-    pub fn get_today(&self) -> u32 {
-        let today = Local::now().format("%Y-%m-%d").to_string();
-        *self.sessions.get(&today).unwrap_or(&0)
-    }
-
-    pub fn get_week(&self) -> u32 {
+    pub fn get_response(&self) -> StatsResponse {
         let now = Local::now();
-        (0..7)
+        let today_key = now.format("%Y-%m-%d").to_string();
+        let today = *self.sessions.get(&today_key).unwrap_or(&0);
+
+        let week = (0..7)
             .map(|days_ago| {
                 let date = (now - chrono::Duration::days(days_ago))
                     .format("%Y-%m-%d")
                     .to_string();
                 *self.sessions.get(&date).unwrap_or(&0)
             })
-            .sum()
-    }
+            .sum();
 
-    pub fn get_response(&self) -> StatsResponse {
-        StatsResponse {
-            today: self.get_today(),
-            week: self.get_week(),
-        }
+        StatsResponse { today, week }
     }
 }

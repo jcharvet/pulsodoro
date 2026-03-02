@@ -11,6 +11,34 @@ const pauseBtn = document.getElementById("pause-btn");
 const resetBtn = document.getElementById("reset-btn");
 const skipBtn = document.getElementById("skip-btn");
 const dots = document.querySelectorAll(".dot");
+const progressRing = document.querySelector(".ring-progress");
+const ringEndpoint = document.querySelector(".ring-endpoint");
+const ringTicks = document.querySelector(".ring-ticks");
+
+// Ring geometry constants
+const RING_RADIUS = 130;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS; // ~816.81
+const RING_CENTER = 150;
+
+// Generate 60 tick marks
+for (let i = 0; i < 60; i++) {
+  const angle = (i * 6 - 90) * (Math.PI / 180); // -90 to start at 12 o'clock
+  const isMajor = i % 5 === 0;
+  const innerR = 136;
+  const outerR = isMajor ? 148 : 145;
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", RING_CENTER + innerR * Math.cos(angle));
+  line.setAttribute("y1", RING_CENTER + innerR * Math.sin(angle));
+  line.setAttribute("x2", RING_CENTER + outerR * Math.cos(angle));
+  line.setAttribute("y2", RING_CENTER + outerR * Math.sin(angle));
+  if (isMajor) line.classList.add("major");
+  ringTicks.appendChild(line);
+}
+
+// Set initial dasharray
+progressRing.style.strokeDasharray = RING_CIRCUMFERENCE;
+progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE; // fully hidden on idle
+
 const bgImage = document.getElementById("bg-image");
 const breakActivity = document.getElementById("break-activity");
 const activityIcon = document.getElementById("activity-icon");
@@ -35,10 +63,13 @@ const soundToggle = document.getElementById("sound-toggle");
 const youtubeUrlInput = document.getElementById("youtube-url");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
+const progressRingToggle = document.getElementById("progress-ring-toggle");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
+const progressRingSvg = document.getElementById("progress-ring");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
+let showProgressRing = true;
 let pendingBreakBg = "";
 let soundEnabled = true;
 let alwaysOnTop = false;
@@ -225,7 +256,31 @@ function formatTime(totalSeconds) {
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
+function updateRing(status) {
+  if (status.state === "Idle" || !status.total_secs) {
+    // Hide ring on idle
+    progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE;
+    ringEndpoint.classList.remove("active");
+    ringEndpoint.setAttribute("opacity", "0");
+    return;
+  }
+
+  const progress = status.remaining_secs / status.total_secs; // 1.0 -> 0.0
+  const offset = RING_CIRCUMFERENCE * (1 - progress);
+  progressRing.style.strokeDashoffset = offset;
+
+  // Position endpoint dot along the arc
+  const angle = (-90 + 360 * (1 - progress)) * (Math.PI / 180);
+  const ex = RING_CENTER + RING_RADIUS * Math.cos(angle);
+  const ey = RING_CENTER + RING_RADIUS * Math.sin(angle);
+  ringEndpoint.setAttribute("cx", ex);
+  ringEndpoint.setAttribute("cy", ey);
+  ringEndpoint.setAttribute("opacity", "1");
+  ringEndpoint.classList.add("active");
+}
+
 function updateUI(status) {
+  updateRing(status);
   timerDisplay.textContent = formatTime(status.remaining_secs);
 
   const stateNames = {
@@ -361,6 +416,7 @@ settingsBtn.addEventListener("click", async () => {
   soundToggle.checked = settings.sound_enabled;
   youtubeUrlInput.value = settings.custom_youtube_id;
   alwaysOnTopToggle.checked = settings.always_on_top;
+  progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -377,6 +433,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
     always_on_top: alwaysOnTopToggle.checked,
+    show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
     break_background: pendingBreakBg,
   };
@@ -384,6 +441,8 @@ saveSettingsBtn.addEventListener("click", async () => {
 
   // Apply new settings immediately
   soundEnabled = soundToggle.checked;
+  showProgressRing = progressRingToggle.checked;
+  progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   setAlwaysOnTop(alwaysOnTopToggle.checked);
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
@@ -468,6 +527,8 @@ async function init() {
   savedBreakBg = settings.break_background;
   soundEnabled = settings.sound_enabled;
   customYouTubeId = settings.custom_youtube_id || "";
+  showProgressRing = settings.show_progress_ring !== false;
+  progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);
 
   const status = await invoke("get_timer_status");

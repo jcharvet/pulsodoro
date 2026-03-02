@@ -42,6 +42,86 @@ body {
 
 #timer-section {
     text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+/* --- Progress Ring --- */
+#timer-ring-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 340px;
+    height: 340px;
+}
+
+#progress-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.ring-ticks line {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1;
+}
+
+.ring-ticks line.major {
+    stroke: rgba(255, 255, 255, 0.5);
+    stroke-width: 1.5;
+}
+
+.ring-track {
+    opacity: 0.4;
+}
+
+.ring-progress {
+    transition: stroke-dashoffset 1s linear, stroke 0.5s ease, filter 0.5s ease;
+    filter: drop-shadow(0 0 4px rgba(233, 69, 96, 0.25));
+    opacity: 0.7;
+}
+
+.ring-endpoint {
+    transition: fill 0.5s ease, cx 0.15s linear, cy 0.15s linear;
+    filter: drop-shadow(0 0 3px rgba(233, 69, 96, 0.35));
+}
+
+/* Endpoint pulse animation */
+@keyframes ring-pulse {
+    0%, 100% { opacity: 1; r: 5; }
+    50% { opacity: 0.6; r: 7; }
+}
+
+.ring-endpoint.active {
+    animation: ring-pulse 2s ease-in-out infinite;
+}
+
+/* State colors for ring */
+body.short-break .ring-progress {
+    stroke: #2ecc71;
+    filter: drop-shadow(0 0 4px rgba(46, 204, 113, 0.25));
+}
+
+body.short-break .ring-endpoint {
+    fill: #2ecc71;
+    filter: drop-shadow(0 0 3px rgba(46, 204, 113, 0.35));
+}
+
+body.long-break .ring-progress {
+    stroke: #9b59b6;
+    filter: drop-shadow(0 0 4px rgba(155, 89, 182, 0.25));
+}
+
+body.long-break .ring-endpoint {
+    fill: #9b59b6;
+    filter: drop-shadow(0 0 3px rgba(155, 89, 182, 0.35));
+}
+
+#progress-ring.ring-hidden {
+    display: none;
 }
 
 #state-label {
@@ -66,7 +146,7 @@ body {
     display: flex;
     justify-content: center;
     gap: 0.75rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
 }
 
 .dot {
@@ -93,6 +173,7 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: center;
+    margin-top: 2rem;
 }
 
 button {

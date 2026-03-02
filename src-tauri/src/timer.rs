@@ -13,6 +13,7 @@ pub enum TimerState {
 pub struct TimerStatus {
     pub state: TimerState,
     pub remaining_secs: u32,
+    pub total_secs: u32,
     pub cycle: u32,
     pub is_running: bool,
 }
@@ -46,6 +47,7 @@ impl PomodoroTimer {
             status: Mutex::new(TimerStatus {
                 state: TimerState::Idle,
                 remaining_secs: durations.focus,
+                total_secs: durations.focus,
                 cycle: 1,
                 is_running: false,
             }),
@@ -56,8 +58,10 @@ impl PomodoroTimer {
     pub fn start(&self) {
         let mut status = self.status.lock().unwrap();
         if status.state == TimerState::Idle {
+            let durations = self.durations.lock().unwrap();
             status.state = TimerState::Focus;
-            status.remaining_secs = self.durations.lock().unwrap().focus;
+            status.remaining_secs = durations.focus;
+            status.total_secs = durations.focus;
         }
         status.is_running = true;
     }
@@ -69,9 +73,11 @@ impl PomodoroTimer {
 
     pub fn reset(&self) {
         let mut status = self.status.lock().unwrap();
+        let focus_dur = self.durations.lock().unwrap().focus;
         *status = TimerStatus {
             state: TimerState::Idle,
-            remaining_secs: self.durations.lock().unwrap().focus,
+            remaining_secs: focus_dur,
+            total_secs: focus_dur,
             cycle: 1,
             is_running: false,
         };
@@ -109,12 +115,14 @@ impl PomodoroTimer {
 
         let durations = self.durations.lock().unwrap();
         status.state = new_state;
-        status.remaining_secs = match new_state {
+        let dur = match new_state {
             TimerState::Focus => durations.focus,
             TimerState::ShortBreak => durations.short_break,
             TimerState::LongBreak => durations.long_break,
             TimerState::Idle => 0,
         };
+        status.remaining_secs = dur;
+        status.total_secs = dur;
 
         Some(new_state)
     }
@@ -146,12 +154,14 @@ impl PomodoroTimer {
 
         let durations = self.durations.lock().unwrap();
         status.state = new_state;
-        status.remaining_secs = match new_state {
+        let dur = match new_state {
             TimerState::Focus => durations.focus,
             TimerState::ShortBreak => durations.short_break,
             TimerState::LongBreak => durations.long_break,
             TimerState::Idle => 0,
         };
+        status.remaining_secs = dur;
+        status.total_secs = dur;
 
         Some(new_state)
     }

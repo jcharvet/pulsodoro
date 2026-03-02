@@ -1,6 +1,7 @@
 mod settings;
 mod timer;
 mod wallpaper_manager;
+mod stats;
 
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -13,11 +14,13 @@ use tauri::{
 use settings::AppSettings;
 use timer::{PomodoroTimer, TimerStatus};
 use wallpaper_manager::WallpaperManager;
+use stats::SessionStats;
 
 struct AppState {
     timer: PomodoroTimer,
     wallpaper: Mutex<WallpaperManager>,
     settings: Mutex<AppSettings>,
+    stats: Mutex<SessionStats>,
     config_dir: PathBuf,
 }
 
@@ -103,6 +106,11 @@ fn load_image(path: String) -> Result<String, String> {
     Ok(format!("data:{};base64,{}", mime, b64))
 }
 
+#[tauri::command]
+fn get_stats(state: State<AppState>) -> stats::StatsResponse {
+    state.stats.lock().unwrap().get_response()
+}
+
 fn start_timer_loop(app: AppHandle) {
     std::thread::spawn(move || loop {
         std::thread::sleep(Duration::from_secs(1));
@@ -114,6 +122,11 @@ fn start_timer_loop(app: AppHandle) {
         let _ = app.emit("timer-update", &status);
 
         if let Some(new_state) = transition {
+            // Record focus completion (only when focus timer naturally reaches 0)
+            if new_state == timer::TimerState::ShortBreak || new_state == timer::TimerState::LongBreak {
+                state.stats.lock().unwrap().record_completion(&state.config_dir);
+            }
+
             let change_wallpaper = state.settings.lock().unwrap().change_wallpaper;
             if change_wallpaper {
                 state
@@ -141,6 +154,7 @@ pub fn run() {
         .unwrap_or_else(|| PathBuf::from("."))
         .join("pulsodoro");
     let settings = AppSettings::load(&config_dir);
+    let stats = SessionStats::load(&config_dir);
 
     let timer = PomodoroTimer::new();
     timer.set_durations(
@@ -156,6 +170,7 @@ pub fn run() {
             timer,
             wallpaper: Mutex::new(WallpaperManager::new()),
             settings: Mutex::new(settings),
+            stats: Mutex::new(stats),
             config_dir,
         })
         .setup(|app| {
@@ -231,7 +246,8 @@ pub fn run() {
             get_timer_status,
             get_settings,
             save_settings,
-            load_image
+            load_image,
+            get_stats
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

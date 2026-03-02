@@ -52,8 +52,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 380px;
-    height: 380px;
+    width: 340px;
+    height: 340px;
 }
 
 #progress-ring {
@@ -146,7 +146,7 @@ body.long-break .ring-endpoint {
     display: flex;
     justify-content: center;
     gap: 0.75rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
 }
 
 .dot {
@@ -173,6 +173,7 @@ body.long-break .ring-endpoint {
     display: flex;
     gap: 1rem;
     justify-content: center;
+    margin-top: 2rem;
 }
 
 button {

@@ -44,6 +44,78 @@ body {
     text-align: center;
 }
 
+/* --- Progress Ring --- */
+#timer-ring-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 320px;
+    height: 320px;
+}
+
+#progress-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ring-ticks line {
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1;
+}
+
+.ring-ticks line.major {
+    stroke: rgba(255, 255, 255, 0.5);
+    stroke-width: 1.5;
+}
+
+.ring-track {
+    opacity: 0.4;
+}
+
+.ring-progress {
+    transition: stroke-dashoffset 1s linear, stroke 0.5s ease, filter 0.5s ease;
+    filter: drop-shadow(0 0 8px rgba(233, 69, 96, 0.4));
+}
+
+.ring-endpoint {
+    transition: fill 0.5s ease, cx 0.15s linear, cy 0.15s linear;
+    filter: drop-shadow(0 0 6px rgba(233, 69, 96, 0.6));
+}
+
+/* Endpoint pulse animation */
+@keyframes ring-pulse {
+    0%, 100% { opacity: 1; r: 5; }
+    50% { opacity: 0.6; r: 7; }
+}
+
+.ring-endpoint.active {
+    animation: ring-pulse 2s ease-in-out infinite;
+}
+
+/* State colors for ring */
+body.short-break .ring-progress {
+    stroke: #2ecc71;
+    filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.4));
+}
+
+body.short-break .ring-endpoint {
+    fill: #2ecc71;
+    filter: drop-shadow(0 0 6px rgba(46, 204, 113, 0.6));
+}
+
+body.long-break .ring-progress {
+    stroke: #9b59b6;
+    filter: drop-shadow(0 0 8px rgba(155, 89, 182, 0.4));
+}
+
+body.long-break .ring-endpoint {
+    fill: #9b59b6;
+    filter: drop-shadow(0 0 6px rgba(155, 89, 182, 0.6));
+}
+
 #state-label {
     font-size: 1rem;
     text-transform: uppercase;

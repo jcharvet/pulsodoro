@@ -465,6 +465,17 @@ settingsBtn.addEventListener("click", async () => {
   musicSourceSelect.value = settings.music_source || "youtube";
   youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
+  // Restore Tidal fields
+  const tidalInfo = extractTidalInfo(settings.tidal_url);
+  if (tidalInfo) {
+    tidalUrlInput.value = settings.tidal_url;
+  } else if (settings.tidal_url) {
+    tidalPresetSelect.value = settings.tidal_url;
+    tidalUrlInput.value = "";
+  } else {
+    tidalUrlInput.value = "";
+    tidalPresetSelect.selectedIndex = 0;
+  }
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
@@ -488,7 +499,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
     music_source: musicSourceSelect.value,
-    tidal_url: "",
+    tidal_url: tidalUrlInput.value.trim() || tidalPresetSelect.value,
     always_on_top: alwaysOnTopToggle.checked,
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,

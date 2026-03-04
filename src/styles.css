@@ -326,6 +326,53 @@ button:disabled {
     color: var(--focus-color);
 }
 
+.settings-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #888;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: none;
+}
+
+.tab-btn:hover {
+    color: #ccc;
+    background: none;
+}
+
+.tab-btn.active {
+    color: var(--focus-color);
+    border-bottom-color: var(--focus-color);
+    background: none;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: normal;
+}
+
 .setting-group {
     margin-bottom: 1.2rem;
 }
@@ -346,6 +393,21 @@ button:disabled {
     border-radius: 4px;
     color: #fff;
     font-size: 0.9rem;
+}
+
+.setting-group select {
+    width: 100%;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.setting-group select option {
+    background: #1a1a2e;
+    color: #fff;
 }
 
 .setting-group input[type="checkbox"] {

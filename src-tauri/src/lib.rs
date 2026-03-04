@@ -9,7 +9,8 @@ use std::time::Duration;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, State,
+    webview::NewWindowResponse,
+    AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder,
 };
 use settings::AppSettings;
 use timer::{PomodoroTimer, TimerStatus};
@@ -111,6 +112,54 @@ fn get_stats(state: State<AppState>) -> stats::StatsResponse {
     state.stats.lock().unwrap().get_response()
 }
 
+#[tauri::command]
+async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("tidal") {
+        let is_minimized = window.is_minimized().unwrap_or(false);
+        let is_visible = window.is_visible().unwrap_or(false);
+
+        if is_minimized || !is_visible {
+            // Bring window back from minimized or hidden state
+            let _ = window.unminimize();
+            window.show().map_err(|e| e.to_string())?;
+            window.set_focus().map_err(|e| e.to_string())?;
+            Ok(true)
+        } else {
+            window.hide().map_err(|e| e.to_string())?;
+            Ok(false)
+        }
+    } else {
+        let parsed_url: url::Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
+        let window = WebviewWindowBuilder::new(
+            &app,
+            "tidal",
+            WebviewUrl::External(parsed_url),
+        )
+        .title("Tidal - PulsoDoro")
+        .inner_size(1024.0, 700.0)
+        .on_new_window(|_url, _features| NewWindowResponse::Allow)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+        let app_handle = app.clone();
+        window.on_window_event(move |event| {
+            if let tauri::WindowEvent::Destroyed = event {
+                let _ = app_handle.emit("tidal-closed", ());
+            }
+        });
+
+        Ok(true)
+    }
+}
+
+#[tauri::command]
+async fn close_tidal(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("tidal") {
+        window.close().map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 fn start_timer_loop(app: AppHandle) {
     std::thread::spawn(move || loop {
         std::thread::sleep(Duration::from_secs(1));
@@ -166,6 +215,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             timer,
             wallpaper: Mutex::new(WallpaperManager::new()),
@@ -247,7 +297,9 @@ pub fn run() {
             get_settings,
             save_settings,
             load_image,
-            get_stats
+            get_stats,
+            toggle_tidal,
+            close_tidal
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

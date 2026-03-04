@@ -14,6 +14,10 @@ pub struct AppSettings {
     pub sound_enabled: bool,
     #[serde(default)]
     pub custom_youtube_id: String,
+    #[serde(default = "default_youtube")]
+    pub music_source: String,
+    #[serde(default)]
+    pub tidal_url: String,
     #[serde(default)]
     pub always_on_top: bool,
     #[serde(default = "default_true")]
@@ -22,6 +26,10 @@ pub struct AppSettings {
 
 fn default_true() -> bool {
     true
+}
+
+fn default_youtube() -> String {
+    "youtube".to_string()
 }
 
 impl Default for AppSettings {
@@ -35,6 +43,8 @@ impl Default for AppSettings {
             break_background: String::new(),
             sound_enabled: true,
             custom_youtube_id: String::new(),
+            music_source: "youtube".to_string(),
+            tidal_url: String::new(),
             always_on_top: false,
             show_progress_ring: true,
         }

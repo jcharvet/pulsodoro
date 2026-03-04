@@ -61,6 +61,13 @@ const focusBgName = document.getElementById("focus-bg-name");
 const breakBgName = document.getElementById("break-bg-name");
 const soundToggle = document.getElementById("sound-toggle");
 const youtubeUrlInput = document.getElementById("youtube-url");
+const musicSourceSelect = document.getElementById("music-source");
+const youtubeSettings = document.getElementById("youtube-settings");
+const tidalSettings = document.getElementById("tidal-settings");
+const tidalPresetSelect = document.getElementById("tidal-preset");
+const tidalUrlInput = document.getElementById("tidal-url");
+const tidalPlayerContainer = document.getElementById("tidal-player-container");
+const tidalPlayer = document.getElementById("tidal-player");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
@@ -183,6 +190,7 @@ const LOFI_STREAMS = [
 let youtubePlayer = null;
 let musicPlaying = false;
 let customYouTubeId = "";
+let musicSource = "youtube";
 
 function extractYouTubeId(input) {
   if (!input) return "";
@@ -202,6 +210,36 @@ function extractYouTubeId(input) {
   }
   return "";
 }
+
+function extractTidalInfo(input) {
+  if (!input) return null;
+  const trimmed = input.trim();
+  // Match: tidal.com/browse/{type}/{id} or listen.tidal.com/{type}/{id}
+  const pattern = /(?:tidal\.com\/browse|listen\.tidal\.com)\/(track|album|playlist|video)s?\/([a-zA-Z0-9-]+)/;
+  const m = trimmed.match(pattern);
+  if (m) {
+    // Normalize type to plural form for embed URL
+    const typeMap = { track: "tracks", album: "albums", playlist: "playlists", video: "videos" };
+    return { type: typeMap[m[1]] || m[1] + "s", id: m[2] };
+  }
+  return null;
+}
+
+function getTidalEmbedUrl() {
+  const presetValue = tidalPresetSelect.value;
+  if (presetValue !== "custom") {
+    return `https://embed.tidal.com/playlists/${presetValue}`;
+  }
+  const info = extractTidalInfo(tidalUrlInput.value);
+  if (info) {
+    return `https://embed.tidal.com/${info.type}/${info.id}`;
+  }
+  return "";
+}
+
+tidalPresetSelect.addEventListener("change", () => {
+  tidalUrlInput.classList.toggle("hidden", tidalPresetSelect.value !== "custom");
+});
 
 function getYouTubeVideoId() {
   if (customYouTubeId) return customYouTubeId;
@@ -230,24 +268,39 @@ window.onYouTubeIframeAPIReady = function () {
 };
 
 musicToggle.addEventListener("click", () => {
-  if (!youtubePlayer) {
-    loadYouTubeAPI();
-    playerContainer.classList.remove("hidden");
-    musicToggle.classList.add("active");
-    musicPlaying = true;
-    return;
+  if (musicSource === "youtube") {
+    if (!youtubePlayer) {
+      loadYouTubeAPI();
+      playerContainer.classList.remove("hidden");
+      musicToggle.classList.add("active");
+      musicPlaying = true;
+      return;
+    }
+    if (musicPlaying) {
+      youtubePlayer.pauseVideo();
+      playerContainer.classList.add("hidden");
+      musicToggle.classList.remove("active");
+    } else {
+      youtubePlayer.playVideo();
+      playerContainer.classList.remove("hidden");
+      musicToggle.classList.add("active");
+    }
+    musicPlaying = !musicPlaying;
+  } else if (musicSource === "tidal") {
+    if (musicPlaying) {
+      tidalPlayerContainer.classList.add("hidden");
+      tidalPlayer.src = ""; // Stop playback
+      musicToggle.classList.remove("active");
+    } else {
+      const embedUrl = getTidalEmbedUrl();
+      if (embedUrl) {
+        tidalPlayer.src = embedUrl;
+        tidalPlayerContainer.classList.remove("hidden");
+        musicToggle.classList.add("active");
+      }
+    }
+    musicPlaying = !musicPlaying;
   }
-
-  if (musicPlaying) {
-    youtubePlayer.pauseVideo();
-    playerContainer.classList.add("hidden");
-    musicToggle.classList.remove("active");
-  } else {
-    youtubePlayer.playVideo();
-    playerContainer.classList.remove("hidden");
-    musicToggle.classList.add("active");
-  }
-  musicPlaying = !musicPlaying;
 });
 
 // --- Timer UI ---
@@ -416,6 +469,18 @@ settingsBtn.addEventListener("click", async () => {
   wallpaperToggle.checked = settings.change_wallpaper;
   soundToggle.checked = settings.sound_enabled;
   youtubeUrlInput.value = settings.custom_youtube_id;
+  musicSourceSelect.value = settings.music_source || "youtube";
+  youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
+  tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
+  const tidalInfo = extractTidalInfo(settings.tidal_url);
+  const isPreset = !settings.tidal_url || !tidalInfo;
+  if (isPreset && settings.tidal_url) {
+    tidalPresetSelect.value = settings.tidal_url;
+  } else if (tidalInfo) {
+    tidalPresetSelect.value = "custom";
+    tidalUrlInput.value = settings.tidal_url;
+  }
+  tidalUrlInput.classList.toggle("hidden", tidalPresetSelect.value !== "custom");
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
@@ -433,6 +498,8 @@ saveSettingsBtn.addEventListener("click", async () => {
     change_wallpaper: wallpaperToggle.checked,
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
+    music_source: musicSourceSelect.value,
+    tidal_url: tidalPresetSelect.value === "custom" ? tidalUrlInput.value : tidalPresetSelect.value,
     always_on_top: alwaysOnTopToggle.checked,
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
@@ -457,6 +524,23 @@ saveSettingsBtn.addEventListener("click", async () => {
       }
     }
   }
+  // Switch music source if changed
+  const newMusicSource = musicSourceSelect.value;
+  if (newMusicSource !== musicSource) {
+    // Stop current player
+    if (musicPlaying) {
+      if (musicSource === "youtube" && youtubePlayer) {
+        youtubePlayer.pauseVideo();
+        playerContainer.classList.add("hidden");
+      } else if (musicSource === "tidal") {
+        tidalPlayer.src = "";
+        tidalPlayerContainer.classList.add("hidden");
+      }
+      musicPlaying = false;
+      musicToggle.classList.remove("active");
+    }
+    musicSource = newMusicSource;
+  }
   savedFocusBg = pendingFocusBg;
   savedBreakBg = pendingBreakBg;
   currentBgState = null; // Force refresh
@@ -468,6 +552,11 @@ saveSettingsBtn.addEventListener("click", async () => {
 
 closeSettingsBtn.addEventListener("click", () => {
   settingsPanel.classList.add("hidden");
+});
+
+musicSourceSelect.addEventListener("change", () => {
+  youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
+  tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
 });
 
 // --- Events from Rust backend ---
@@ -534,6 +623,7 @@ async function init() {
   savedBreakBg = settings.break_background;
   soundEnabled = settings.sound_enabled;
   customYouTubeId = settings.custom_youtube_id || "";
+  musicSource = settings.music_source || "youtube";
   showProgressRing = settings.show_progress_ring ?? true;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);

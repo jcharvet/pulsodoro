@@ -61,6 +61,10 @@ const focusBgName = document.getElementById("focus-bg-name");
 const breakBgName = document.getElementById("break-bg-name");
 const soundToggle = document.getElementById("sound-toggle");
 const youtubeUrlInput = document.getElementById("youtube-url");
+const musicSourceSelect = document.getElementById("music-source");
+const youtubeSettings = document.getElementById("youtube-settings");
+const tidalSettings = document.getElementById("tidal-settings");
+const tidalUrlInput = document.getElementById("tidal-url");
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 const pinBtn = document.getElementById("pin-btn");
@@ -76,6 +80,7 @@ let showProgressRing = true;
 let pendingBreakBg = "";
 let soundEnabled = true;
 let alwaysOnTop = false;
+let musicSource = "youtube";
 
 // --- Sound Alert ---
 async function playChime() {
@@ -231,7 +236,16 @@ window.onYouTubeIframeAPIReady = function () {
   });
 };
 
-musicToggle.addEventListener("click", () => {
+musicToggle.addEventListener("click", async () => {
+  if (musicSource === "tidal") {
+    await invoke("toggle_tidal", {
+      url: tidalUrlInput.value.trim() || "https://listen.tidal.com",
+    });
+    musicToggle.classList.add("active");
+    musicPlaying = true;
+    return;
+  }
+  // YouTube
   if (!youtubePlayer) {
     loadYouTubeAPI();
     playerContainer.classList.remove("hidden");
@@ -417,6 +431,11 @@ settingsBtn.addEventListener("click", async () => {
   wallpaperToggle.checked = settings.change_wallpaper;
   soundToggle.checked = settings.sound_enabled;
   youtubeUrlInput.value = settings.custom_youtube_id;
+  musicSource = settings.music_source || "youtube";
+  musicSourceSelect.value = musicSource;
+  youtubeSettings.classList.toggle("hidden", musicSource !== "youtube");
+  tidalSettings.classList.toggle("hidden", musicSource !== "tidal");
+  tidalUrlInput.value = settings.tidal_url || "";
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
@@ -439,8 +458,8 @@ saveSettingsBtn.addEventListener("click", async () => {
     change_wallpaper: wallpaperToggle.checked,
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
-    music_source: "youtube",
-    tidal_url: "",
+    music_source: musicSourceSelect.value,
+    tidal_url: tidalUrlInput.value.trim(),
     always_on_top: alwaysOnTopToggle.checked,
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
@@ -465,6 +484,19 @@ saveSettingsBtn.addEventListener("click", async () => {
       }
     }
   }
+  // Close other player when source changes
+  const newSource = musicSourceSelect.value;
+  if (newSource !== musicSource) {
+    if (musicSource === "tidal") {
+      await invoke("close_tidal");
+    } else if (musicSource === "youtube" && youtubePlayer) {
+      youtubePlayer.pauseVideo();
+      playerContainer.classList.add("hidden");
+    }
+    musicToggle.classList.remove("active");
+    musicPlaying = false;
+    musicSource = newSource;
+  }
   savedFocusBg = pendingFocusBg;
   savedBreakBg = pendingBreakBg;
   currentBgState = null; // Force refresh
@@ -488,6 +520,12 @@ tabBtns.forEach((btn) => {
   });
 });
 
+// --- Music Source Toggle ---
+musicSourceSelect.addEventListener("change", () => {
+  youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
+  tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
+});
+
 // --- Events from Rust backend ---
 listen("timer-update", (event) => {
   updateUI(event.payload);
@@ -499,6 +537,11 @@ listen("timer-notification", (event) => {
   if (Notification.permission === "granted") {
     new Notification("PulsoDoro", { body: event.payload });
   }
+});
+
+listen("tidal-closed", () => {
+  musicToggle.classList.remove("active");
+  musicPlaying = false;
 });
 
 // --- Keyboard Shortcuts ---
@@ -552,6 +595,7 @@ async function init() {
   savedBreakBg = settings.break_background;
   soundEnabled = settings.sound_enabled;
   customYouTubeId = settings.custom_youtube_id || "";
+  musicSource = settings.music_source || "youtube";
   showProgressRing = settings.show_progress_ring ?? true;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);

@@ -115,13 +115,18 @@ fn get_stats(state: State<AppState>) -> stats::StatsResponse {
 #[tauri::command]
 async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
     if let Some(window) = app.get_webview_window("tidal") {
-        if window.is_visible().unwrap_or(false) {
-            window.hide().map_err(|e| e.to_string())?;
-            Ok(false)
-        } else {
+        let is_minimized = window.is_minimized().unwrap_or(false);
+        let is_visible = window.is_visible().unwrap_or(false);
+
+        if is_minimized || !is_visible {
+            // Bring window back from minimized or hidden state
+            let _ = window.unminimize();
             window.show().map_err(|e| e.to_string())?;
             window.set_focus().map_err(|e| e.to_string())?;
             Ok(true)
+        } else {
+            window.hide().map_err(|e| e.to_string())?;
+            Ok(false)
         }
     } else {
         let parsed_url: url::Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;

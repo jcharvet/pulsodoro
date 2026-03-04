@@ -96,7 +96,14 @@
                     <input type="text" id="youtube-url" placeholder="Paste YouTube URL or video ID" />
                 </div>
                 <div id="tidal-settings" class="setting-group hidden">
-                    <p class="hint">Click the Music button to open Tidal. Log in once, then browse and play directly.</p>
+                    <label>Tidal Playlist</label>
+                    <select id="tidal-preset">
+                        <option value="c59242b9-fc33-4f93-954c-d5d164949ba1">LoFi Study Session Beats</option>
+                        <option value="2b2cb045-0b11-4340-b625-b3dcd209193c">Ultimate Lo-Fi / Chillhop</option>
+                    </select>
+                    <label>Custom Tidal URL <span class="hint">(overrides preset when filled)</span></label>
+                    <input type="text" id="tidal-url" placeholder="Paste Tidal playlist, album, or track URL" />
+                    <p class="hint" style="margin-top: 0.5rem;">Sign in inside the player to unlock full playback.</p>
                 </div>
                 <div class="setting-group">
                     <label>
@@ -152,6 +159,11 @@
 
     <div id="youtube-player-container" class="hidden">
         <div id="youtube-player"></div>
+    </div>
+
+    <div id="tidal-player-container" class="hidden">
+        <iframe id="tidal-player" src="" allow="encrypted-media *; autoplay"
+            frameborder="0" width="350" height="300"></iframe>
     </div>
 
     <script type="module" src="/src/main.js"></script>

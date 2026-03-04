@@ -64,7 +64,10 @@ const youtubeUrlInput = document.getElementById("youtube-url");
 const musicSourceSelect = document.getElementById("music-source");
 const youtubeSettings = document.getElementById("youtube-settings");
 const tidalSettings = document.getElementById("tidal-settings");
-let tidalWindow = null;
+const tidalPlayerContainer = document.getElementById("tidal-player-container");
+const tidalPlayer = document.getElementById("tidal-player");
+const tidalPresetSelect = document.getElementById("tidal-preset");
+const tidalUrlInput = document.getElementById("tidal-url");
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 const pinBtn = document.getElementById("pin-btn");
@@ -256,27 +259,13 @@ musicToggle.addEventListener("click", async () => {
     }
     musicPlaying = !musicPlaying;
   } else if (musicSource === "tidal") {
-    if (musicPlaying && tidalWindow) {
-      await tidalWindow.close();
-      tidalWindow = null;
+    if (musicPlaying) {
+      tidalPlayerContainer.classList.add("hidden");
+      tidalPlayer.src = "";
       musicToggle.classList.remove("active");
     } else {
-      const { WebviewWindow } = window.__TAURI__.webviewWindow;
-      tidalWindow = new WebviewWindow("tidal-player", {
-        url: "https://listen.tidal.com",
-        title: "Tidal - PulsoDoro",
-        width: 1024,
-        height: 768,
-        resizable: true,
-        center: true,
-        decorations: true,
-      });
-      tidalWindow.once("tauri://error", (e) => {
-        console.error("Tidal window error:", e);
-        tidalWindow = null;
-        musicToggle.classList.remove("active");
-        musicPlaying = false;
-      });
+      tidalPlayer.src = getTidalEmbedUrl();
+      tidalPlayerContainer.classList.remove("hidden");
       musicToggle.classList.add("active");
     }
     musicPlaying = !musicPlaying;
@@ -508,9 +497,9 @@ saveSettingsBtn.addEventListener("click", async () => {
       if (musicSource === "youtube" && youtubePlayer) {
         youtubePlayer.pauseVideo();
         playerContainer.classList.add("hidden");
-      } else if (musicSource === "tidal" && tidalWindow) {
-        await tidalWindow.close();
-        tidalWindow = null;
+      } else if (musicSource === "tidal") {
+        tidalPlayer.src = "";
+        tidalPlayerContainer.classList.add("hidden");
       }
       musicPlaying = false;
       musicToggle.classList.remove("active");

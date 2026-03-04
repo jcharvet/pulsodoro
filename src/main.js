@@ -64,10 +64,6 @@ const youtubeUrlInput = document.getElementById("youtube-url");
 const musicSourceSelect = document.getElementById("music-source");
 const youtubeSettings = document.getElementById("youtube-settings");
 const tidalSettings = document.getElementById("tidal-settings");
-const tidalPlayerContainer = document.getElementById("tidal-player-container");
-const tidalPlayer = document.getElementById("tidal-player");
-const tidalPresetSelect = document.getElementById("tidal-preset");
-const tidalUrlInput = document.getElementById("tidal-url");
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 const pinBtn = document.getElementById("pin-btn");
@@ -218,30 +214,6 @@ function getYouTubeVideoId() {
   return LOFI_STREAMS[Math.floor(Math.random() * LOFI_STREAMS.length)];
 }
 
-// --- Tidal Embed Player ---
-function extractTidalInfo(input) {
-  if (!input) return null;
-  const trimmed = input.trim();
-  // Match tidal.com URLs: /browse/type/id or /type/id
-  const m = trimmed.match(
-    /tidal\.com\/(?:browse\/)?(track|album|playlist|video)s?\/([a-zA-Z0-9-]+)/
-  );
-  if (m) return { type: m[1] + "s", id: m[2] };
-  return null;
-}
-
-function getTidalEmbedUrl() {
-  const customUrl = tidalUrlInput.value.trim();
-  if (customUrl) {
-    const info = extractTidalInfo(customUrl);
-    if (info) {
-      return `https://embed.tidal.com/${info.type}/${info.id}?layout=gridify`;
-    }
-  }
-  const presetValue = tidalPresetSelect.value;
-  return `https://embed.tidal.com/playlists/${presetValue}?layout=gridify`;
-}
-
 function loadYouTubeAPI() {
   const tag = document.createElement("script");
   tag.src = "https://www.youtube.com/iframe_api";
@@ -283,16 +255,9 @@ musicToggle.addEventListener("click", async () => {
     }
     musicPlaying = !musicPlaying;
   } else if (musicSource === "tidal") {
-    if (musicPlaying) {
-      tidalPlayerContainer.classList.add("hidden");
-      tidalPlayer.src = "";
-      musicToggle.classList.remove("active");
-    } else {
-      tidalPlayer.src = getTidalEmbedUrl();
-      tidalPlayerContainer.classList.remove("hidden");
-      musicToggle.classList.add("active");
-    }
-    musicPlaying = !musicPlaying;
+    // Open Tidal in the user's default browser
+    const { openUrl } = window.__TAURI__.opener;
+    await openUrl("https://listen.tidal.com");
   }
 });
 
@@ -465,17 +430,6 @@ settingsBtn.addEventListener("click", async () => {
   musicSourceSelect.value = settings.music_source || "youtube";
   youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
-  // Restore Tidal fields
-  const tidalInfo = extractTidalInfo(settings.tidal_url);
-  if (tidalInfo) {
-    tidalUrlInput.value = settings.tidal_url;
-  } else if (settings.tidal_url) {
-    tidalPresetSelect.value = settings.tidal_url;
-    tidalUrlInput.value = "";
-  } else {
-    tidalUrlInput.value = "";
-    tidalPresetSelect.selectedIndex = 0;
-  }
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
@@ -499,7 +453,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
     music_source: musicSourceSelect.value,
-    tidal_url: tidalUrlInput.value.trim() || tidalPresetSelect.value,
+    tidal_url: "",
     always_on_top: alwaysOnTopToggle.checked,
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
@@ -532,9 +486,6 @@ saveSettingsBtn.addEventListener("click", async () => {
       if (musicSource === "youtube" && youtubePlayer) {
         youtubePlayer.pauseVideo();
         playerContainer.classList.add("hidden");
-      } else if (musicSource === "tidal") {
-        tidalPlayer.src = "";
-        tidalPlayerContainer.classList.add("hidden");
       }
       musicPlaying = false;
       musicToggle.classList.remove("active");

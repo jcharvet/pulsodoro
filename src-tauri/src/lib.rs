@@ -9,7 +9,8 @@ use std::time::Duration;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Emitter, Manager, State,
+    webview::NewWindowResponse,
+    AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder,
 };
 use settings::AppSettings;
 use timer::{PomodoroTimer, TimerStatus};
@@ -109,6 +110,49 @@ fn load_image(path: String) -> Result<String, String> {
 #[tauri::command]
 fn get_stats(state: State<AppState>) -> stats::StatsResponse {
     state.stats.lock().unwrap().get_response()
+}
+
+#[tauri::command]
+async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
+    if let Some(window) = app.get_webview_window("tidal") {
+        if window.is_visible().unwrap_or(false) {
+            window.hide().map_err(|e| e.to_string())?;
+            Ok(false)
+        } else {
+            window.show().map_err(|e| e.to_string())?;
+            window.set_focus().map_err(|e| e.to_string())?;
+            Ok(true)
+        }
+    } else {
+        let parsed_url: url::Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
+        let window = WebviewWindowBuilder::new(
+            &app,
+            "tidal",
+            WebviewUrl::External(parsed_url),
+        )
+        .title("Tidal - PulsoDoro")
+        .inner_size(1024.0, 700.0)
+        .on_new_window(|_url, _features| NewWindowResponse::Allow)
+        .build()
+        .map_err(|e| e.to_string())?;
+
+        let app_handle = app.clone();
+        window.on_window_event(move |event| {
+            if let tauri::WindowEvent::Destroyed = event {
+                let _ = app_handle.emit("tidal-closed", ());
+            }
+        });
+
+        Ok(true)
+    }
+}
+
+#[tauri::command]
+async fn close_tidal(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("tidal") {
+        window.close().map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 fn start_timer_loop(app: AppHandle) {
@@ -248,7 +292,9 @@ pub fn run() {
             get_settings,
             save_settings,
             load_image,
-            get_stats
+            get_stats,
+            toggle_tidal,
+            close_tidal
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

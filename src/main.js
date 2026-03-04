@@ -64,13 +64,10 @@ const youtubeUrlInput = document.getElementById("youtube-url");
 const musicSourceSelect = document.getElementById("music-source");
 const youtubeSettings = document.getElementById("youtube-settings");
 const tidalSettings = document.getElementById("tidal-settings");
-const tidalPresetSelect = document.getElementById("tidal-preset");
-const tidalUrlInput = document.getElementById("tidal-url");
-const tidalPlayerContainer = document.getElementById("tidal-player-container");
-const tidalPlayer = document.getElementById("tidal-player");
+const tidalPanel = document.getElementById("tidal-panel");
+const tidalWebview = document.getElementById("tidal-webview");
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
-const browseTidalBtn = document.getElementById("browse-tidal");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
@@ -214,34 +211,6 @@ function extractYouTubeId(input) {
   return "";
 }
 
-function extractTidalInfo(input) {
-  if (!input) return null;
-  const trimmed = input.trim();
-  // Match various Tidal URL formats:
-  // tidal.com/browse/{type}/{id}, tidal.com/{type}/{id}, listen.tidal.com/{type}/{id}
-  const pattern = /(?:tidal\.com(?:\/browse)?|listen\.tidal\.com)\/(track|album|playlist|video|artist|mix)s?\/([a-zA-Z0-9-]+)/;
-  const m = trimmed.match(pattern);
-  if (m) {
-    // Normalize type to plural form for embed URL
-    const typeMap = { track: "tracks", album: "albums", playlist: "playlists", video: "videos", artist: "artists", mix: "mixes" };
-    return { type: typeMap[m[1]] || m[1] + "s", id: m[2] };
-  }
-  return null;
-}
-
-function getTidalEmbedUrl() {
-  // Custom URL overrides preset when filled
-  const customUrl = tidalUrlInput.value.trim();
-  if (customUrl) {
-    const info = extractTidalInfo(customUrl);
-    if (info) {
-      return `https://embed.tidal.com/${info.type}/${info.id}`;
-    }
-  }
-  const presetValue = tidalPresetSelect.value;
-  return `https://embed.tidal.com/playlists/${presetValue}`;
-}
-
 function getYouTubeVideoId() {
   if (customYouTubeId) return customYouTubeId;
   return LOFI_STREAMS[Math.floor(Math.random() * LOFI_STREAMS.length)];
@@ -289,16 +258,16 @@ musicToggle.addEventListener("click", () => {
     musicPlaying = !musicPlaying;
   } else if (musicSource === "tidal") {
     if (musicPlaying) {
-      tidalPlayerContainer.classList.add("hidden");
-      tidalPlayer.src = ""; // Stop playback
+      tidalPanel.classList.add("hidden");
+      document.body.classList.remove("tidal-open");
+      tidalWebview.src = "";
       musicToggle.classList.remove("active");
     } else {
-      const embedUrl = getTidalEmbedUrl();
-      if (embedUrl) {
-        tidalPlayer.src = embedUrl;
-        tidalPlayerContainer.classList.remove("hidden");
-        musicToggle.classList.add("active");
-      }
+      // Load Tidal web app directly - user logs in and browses here
+      tidalWebview.src = "https://listen.tidal.com";
+      tidalPanel.classList.remove("hidden");
+      document.body.classList.add("tidal-open");
+      musicToggle.classList.add("active");
     }
     musicPlaying = !musicPlaying;
   }
@@ -346,7 +315,9 @@ function updateUI(status) {
   };
   stateLabel.textContent = stateNames[status.state] || status.state;
 
+  const keepTidalOpen = document.body.classList.contains("tidal-open");
   document.body.className = "";
+  if (keepTidalOpen) document.body.classList.add("tidal-open");
   if (status.state === "Focus") document.body.classList.add("focus");
   else if (status.state === "ShortBreak")
     document.body.classList.add("short-break");
@@ -473,16 +444,6 @@ settingsBtn.addEventListener("click", async () => {
   musicSourceSelect.value = settings.music_source || "youtube";
   youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
-  const tidalInfo = extractTidalInfo(settings.tidal_url);
-  if (tidalInfo) {
-    tidalUrlInput.value = settings.tidal_url;
-  } else if (settings.tidal_url) {
-    tidalPresetSelect.value = settings.tidal_url;
-    tidalUrlInput.value = "";
-  } else {
-    tidalPresetSelect.selectedIndex = 0;
-    tidalUrlInput.value = "";
-  }
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
@@ -506,7 +467,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
     music_source: musicSourceSelect.value,
-    tidal_url: tidalUrlInput.value.trim() || tidalPresetSelect.value,
+    tidal_url: "",
     always_on_top: alwaysOnTopToggle.checked,
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
@@ -540,8 +501,9 @@ saveSettingsBtn.addEventListener("click", async () => {
         youtubePlayer.pauseVideo();
         playerContainer.classList.add("hidden");
       } else if (musicSource === "tidal") {
-        tidalPlayer.src = "";
-        tidalPlayerContainer.classList.add("hidden");
+        tidalWebview.src = "";
+        tidalPanel.classList.add("hidden");
+        document.body.classList.remove("tidal-open");
       }
       musicPlaying = false;
       musicToggle.classList.remove("active");
@@ -574,11 +536,6 @@ tabBtns.forEach((btn) => {
     btn.classList.add("active");
     document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
   });
-});
-
-browseTidalBtn.addEventListener("click", async () => {
-  const { openUrl } = window.__TAURI__.opener;
-  await openUrl("https://listen.tidal.com");
 });
 
 // --- Events from Rust backend ---

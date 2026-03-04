@@ -348,6 +348,21 @@ button:disabled {
     font-size: 0.9rem;
 }
 
+.setting-group select {
+    width: 100%;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.setting-group select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
 .setting-group input[type="checkbox"] {
     margin-right: 0.5rem;
 }
@@ -430,6 +445,16 @@ button:disabled {
 
 #youtube-player-container iframe {
     display: block;
+}
+
+#tidal-player-container {
+    position: fixed;
+    bottom: 55px;
+    left: 10px;
+    z-index: 3;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 body.short-break #state-label,

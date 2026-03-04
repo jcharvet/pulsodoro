@@ -217,12 +217,13 @@ function extractYouTubeId(input) {
 function extractTidalInfo(input) {
   if (!input) return null;
   const trimmed = input.trim();
-  // Match: tidal.com/browse/{type}/{id} or listen.tidal.com/{type}/{id}
-  const pattern = /(?:tidal\.com\/browse|listen\.tidal\.com)\/(track|album|playlist|video)s?\/([a-zA-Z0-9-]+)/;
+  // Match various Tidal URL formats:
+  // tidal.com/browse/{type}/{id}, tidal.com/{type}/{id}, listen.tidal.com/{type}/{id}
+  const pattern = /(?:tidal\.com(?:\/browse)?|listen\.tidal\.com)\/(track|album|playlist|video|artist|mix)s?\/([a-zA-Z0-9-]+)/;
   const m = trimmed.match(pattern);
   if (m) {
     // Normalize type to plural form for embed URL
-    const typeMap = { track: "tracks", album: "albums", playlist: "playlists", video: "videos" };
+    const typeMap = { track: "tracks", album: "albums", playlist: "playlists", video: "videos", artist: "artists", mix: "mixes" };
     return { type: typeMap[m[1]] || m[1] + "s", id: m[2] };
   }
   return null;

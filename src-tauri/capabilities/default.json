@@ -12,6 +12,7 @@
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-fullscreen",
     "core:window:allow-is-fullscreen",
-    "opener:default"
+    "opener:default",
+    "core:webview:allow-create-webview-window"
   ]
 }

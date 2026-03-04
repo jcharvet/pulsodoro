@@ -64,8 +64,8 @@ const youtubeUrlInput = document.getElementById("youtube-url");
 const musicSourceSelect = document.getElementById("music-source");
 const youtubeSettings = document.getElementById("youtube-settings");
 const tidalSettings = document.getElementById("tidal-settings");
-const tidalPanel = document.getElementById("tidal-panel");
-const tidalWebview = document.getElementById("tidal-webview");
+const { WebviewWindow } = window.__TAURI__.webviewWindow;
+let tidalWindow = null;
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
 const pinBtn = document.getElementById("pin-btn");
@@ -257,16 +257,26 @@ musicToggle.addEventListener("click", () => {
     }
     musicPlaying = !musicPlaying;
   } else if (musicSource === "tidal") {
-    if (musicPlaying) {
-      tidalPanel.classList.add("hidden");
-      document.body.classList.remove("tidal-open");
-      tidalWebview.src = "";
+    if (musicPlaying && tidalWindow) {
+      await tidalWindow.close();
+      tidalWindow = null;
       musicToggle.classList.remove("active");
     } else {
-      // Load Tidal web app directly - user logs in and browses here
-      tidalWebview.src = "https://listen.tidal.com";
-      tidalPanel.classList.remove("hidden");
-      document.body.classList.add("tidal-open");
+      tidalWindow = new WebviewWindow("tidal-player", {
+        url: "https://listen.tidal.com",
+        title: "Tidal - PulsoDoro",
+        width: 1024,
+        height: 768,
+        resizable: true,
+        center: true,
+        decorations: true,
+      });
+      tidalWindow.once("tauri://error", (e) => {
+        console.error("Tidal window error:", e);
+        tidalWindow = null;
+        musicToggle.classList.remove("active");
+        musicPlaying = false;
+      });
       musicToggle.classList.add("active");
     }
     musicPlaying = !musicPlaying;
@@ -315,9 +325,7 @@ function updateUI(status) {
   };
   stateLabel.textContent = stateNames[status.state] || status.state;
 
-  const keepTidalOpen = document.body.classList.contains("tidal-open");
   document.body.className = "";
-  if (keepTidalOpen) document.body.classList.add("tidal-open");
   if (status.state === "Focus") document.body.classList.add("focus");
   else if (status.state === "ShortBreak")
     document.body.classList.add("short-break");
@@ -500,10 +508,9 @@ saveSettingsBtn.addEventListener("click", async () => {
       if (musicSource === "youtube" && youtubePlayer) {
         youtubePlayer.pauseVideo();
         playerContainer.classList.add("hidden");
-      } else if (musicSource === "tidal") {
-        tidalWebview.src = "";
-        tidalPanel.classList.add("hidden");
-        document.body.classList.remove("tidal-open");
+      } else if (musicSource === "tidal" && tidalWindow) {
+        await tidalWindow.close();
+        tidalWindow = null;
       }
       musicPlaying = false;
       musicToggle.classList.remove("active");

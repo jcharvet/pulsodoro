@@ -218,6 +218,30 @@ function getYouTubeVideoId() {
   return LOFI_STREAMS[Math.floor(Math.random() * LOFI_STREAMS.length)];
 }
 
+// --- Tidal Embed Player ---
+function extractTidalInfo(input) {
+  if (!input) return null;
+  const trimmed = input.trim();
+  // Match tidal.com URLs: /browse/type/id or /type/id
+  const m = trimmed.match(
+    /tidal\.com\/(?:browse\/)?(track|album|playlist|video)s?\/([a-zA-Z0-9-]+)/
+  );
+  if (m) return { type: m[1] + "s", id: m[2] };
+  return null;
+}
+
+function getTidalEmbedUrl() {
+  const customUrl = tidalUrlInput.value.trim();
+  if (customUrl) {
+    const info = extractTidalInfo(customUrl);
+    if (info) {
+      return `https://embed.tidal.com/${info.type}/${info.id}?layout=gridify`;
+    }
+  }
+  const presetValue = tidalPresetSelect.value;
+  return `https://embed.tidal.com/playlists/${presetValue}?layout=gridify`;
+}
+
 function loadYouTubeAPI() {
   const tag = document.createElement("script");
   tag.src = "https://www.youtube.com/iframe_api";

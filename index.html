@@ -99,8 +99,24 @@
                 </label>
             </div>
             <div class="setting-group">
+                <label>Music Source</label>
+                <select id="music-source">
+                    <option value="youtube">YouTube</option>
+                    <option value="tidal">Tidal</option>
+                </select>
+            </div>
+            <div id="youtube-settings" class="setting-group">
                 <label>YouTube Music URL / ID</label>
                 <input type="text" id="youtube-url" placeholder="Paste YouTube URL or video ID" />
+            </div>
+            <div id="tidal-settings" class="setting-group hidden">
+                <label>Tidal Playlist</label>
+                <select id="tidal-preset">
+                    <option value="c59242b9-fc33-4f93-954c-d5d164949ba1">LoFi Study Session Beats</option>
+                    <option value="2b2cb045-0b11-4340-b625-b3dcd209193c">Ultimate Lo-Fi / Chillhop</option>
+                    <option value="custom">Custom URL...</option>
+                </select>
+                <input type="text" id="tidal-url" class="hidden" placeholder="Paste Tidal URL (playlist, album, or track)" />
             </div>
             <div class="setting-group">
                 <label>Focus Background</label>
@@ -127,6 +143,12 @@
 
     <div id="youtube-player-container" class="hidden">
         <div id="youtube-player"></div>
+    </div>
+
+    <div id="tidal-player-container" class="hidden">
+        <iframe id="tidal-player" src="" width="300" height="80"
+            allow="encrypted-media" frameborder="0"
+            style="border-radius: 8px;"></iframe>
     </div>
 
     <script type="module" src="/src/main.js"></script>

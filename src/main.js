@@ -64,7 +64,6 @@ const youtubeUrlInput = document.getElementById("youtube-url");
 const musicSourceSelect = document.getElementById("music-source");
 const youtubeSettings = document.getElementById("youtube-settings");
 const tidalSettings = document.getElementById("tidal-settings");
-const { WebviewWindow } = window.__TAURI__.webviewWindow;
 let tidalWindow = null;
 const tabBtns = document.querySelectorAll(".tab-btn");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -237,7 +236,7 @@ window.onYouTubeIframeAPIReady = function () {
   });
 };
 
-musicToggle.addEventListener("click", () => {
+musicToggle.addEventListener("click", async () => {
   if (musicSource === "youtube") {
     if (!youtubePlayer) {
       loadYouTubeAPI();
@@ -262,6 +261,7 @@ musicToggle.addEventListener("click", () => {
       tidalWindow = null;
       musicToggle.classList.remove("active");
     } else {
+      const { WebviewWindow } = window.__TAURI__.webviewWindow;
       tidalWindow = new WebviewWindow("tidal-player", {
         url: "https://listen.tidal.com",
         title: "Tidal - PulsoDoro",

@@ -68,6 +68,9 @@ const tidalPresetSelect = document.getElementById("tidal-preset");
 const tidalUrlInput = document.getElementById("tidal-url");
 const tidalPlayerContainer = document.getElementById("tidal-player-container");
 const tidalPlayer = document.getElementById("tidal-player");
+const tabBtns = document.querySelectorAll(".tab-btn");
+const tabContents = document.querySelectorAll(".tab-content");
+const browseTidalBtn = document.getElementById("browse-tidal");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
@@ -226,20 +229,17 @@ function extractTidalInfo(input) {
 }
 
 function getTidalEmbedUrl() {
+  // Custom URL overrides preset when filled
+  const customUrl = tidalUrlInput.value.trim();
+  if (customUrl) {
+    const info = extractTidalInfo(customUrl);
+    if (info) {
+      return `https://embed.tidal.com/${info.type}/${info.id}`;
+    }
+  }
   const presetValue = tidalPresetSelect.value;
-  if (presetValue !== "custom") {
-    return `https://embed.tidal.com/playlists/${presetValue}`;
-  }
-  const info = extractTidalInfo(tidalUrlInput.value);
-  if (info) {
-    return `https://embed.tidal.com/${info.type}/${info.id}`;
-  }
-  return "";
+  return `https://embed.tidal.com/playlists/${presetValue}`;
 }
-
-tidalPresetSelect.addEventListener("change", () => {
-  tidalUrlInput.classList.toggle("hidden", tidalPresetSelect.value !== "custom");
-});
 
 function getYouTubeVideoId() {
   if (customYouTubeId) return customYouTubeId;
@@ -473,20 +473,25 @@ settingsBtn.addEventListener("click", async () => {
   youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
   const tidalInfo = extractTidalInfo(settings.tidal_url);
-  const isPreset = !settings.tidal_url || !tidalInfo;
-  if (isPreset && settings.tidal_url) {
-    tidalPresetSelect.value = settings.tidal_url;
-  } else if (tidalInfo) {
-    tidalPresetSelect.value = "custom";
+  if (tidalInfo) {
     tidalUrlInput.value = settings.tidal_url;
+  } else if (settings.tidal_url) {
+    tidalPresetSelect.value = settings.tidal_url;
+    tidalUrlInput.value = "";
+  } else {
+    tidalUrlInput.value = "";
   }
-  tidalUrlInput.classList.toggle("hidden", tidalPresetSelect.value !== "custom");
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
   breakBgName.textContent = fileNameFromPath(settings.break_background);
+  // Reset to Timer tab
+  tabBtns.forEach((b) => b.classList.remove("active"));
+  tabContents.forEach((c) => c.classList.remove("active"));
+  tabBtns[0].classList.add("active");
+  tabContents[0].classList.add("active");
   settingsPanel.classList.remove("hidden");
 });
 
@@ -499,7 +504,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     sound_enabled: soundToggle.checked,
     custom_youtube_id: extractYouTubeId(youtubeUrlInput.value),
     music_source: musicSourceSelect.value,
-    tidal_url: tidalPresetSelect.value === "custom" ? tidalUrlInput.value : tidalPresetSelect.value,
+    tidal_url: tidalUrlInput.value.trim() || tidalPresetSelect.value,
     always_on_top: alwaysOnTopToggle.checked,
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
@@ -557,6 +562,21 @@ closeSettingsBtn.addEventListener("click", () => {
 musicSourceSelect.addEventListener("change", () => {
   youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
+});
+
+// --- Settings Tabs ---
+tabBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    tabBtns.forEach((b) => b.classList.remove("active"));
+    tabContents.forEach((c) => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+  });
+});
+
+browseTidalBtn.addEventListener("click", async () => {
+  const { openUrl } = window.__TAURI__.opener;
+  await openUrl("https://listen.tidal.com");
 });
 
 // --- Events from Rust backend ---

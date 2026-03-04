@@ -85,8 +85,20 @@
 
             <div id="tab-music" class="tab-content">
                 <div class="setting-group">
+                    <label>Music Source</label>
+                    <select id="music-source">
+                        <option value="youtube">YouTube</option>
+                        <option value="tidal">Tidal</option>
+                    </select>
+                </div>
+                <div id="youtube-settings" class="setting-group">
                     <label>YouTube Music URL / ID</label>
                     <input type="text" id="youtube-url" placeholder="Paste YouTube URL or video ID" />
+                </div>
+                <div id="tidal-settings" class="setting-group hidden">
+                    <label>Starting URL <span class="hint">(optional, defaults to listen.tidal.com)</span></label>
+                    <input type="text" id="tidal-url" placeholder="Paste a Tidal playlist or album URL" />
+                    <p class="hint" style="margin-top: 0.5rem;">Opens in a browser window. Log in once — your session is remembered.</p>
                 </div>
                 <div class="setting-group">
                     <label>

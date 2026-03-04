@@ -479,6 +479,7 @@ settingsBtn.addEventListener("click", async () => {
     tidalPresetSelect.value = settings.tidal_url;
     tidalUrlInput.value = "";
   } else {
+    tidalPresetSelect.selectedIndex = 0;
     tidalUrlInput.value = "";
   }
   alwaysOnTopToggle.checked = settings.always_on_top;

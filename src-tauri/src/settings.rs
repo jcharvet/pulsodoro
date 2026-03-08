@@ -26,6 +26,8 @@ pub struct AppSettings {
     pub theme: String,
     #[serde(default = "default_classic")]
     pub ui_style: String,
+    #[serde(default = "default_segoe")]
+    pub font: String,
 }
 
 fn default_true() -> bool {
@@ -42,6 +44,10 @@ fn default_midnight() -> String {
 
 fn default_classic() -> String {
     "classic".to_string()
+}
+
+fn default_segoe() -> String {
+    "segoe".to_string()
 }
 
 impl Default for AppSettings {
@@ -61,6 +67,7 @@ impl Default for AppSettings {
             show_progress_ring: true,
             theme: "midnight".to_string(),
             ui_style: "classic".to_string(),
+            font: "segoe".to_string(),
         }
     }
 }

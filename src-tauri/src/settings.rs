@@ -24,6 +24,10 @@ pub struct AppSettings {
     pub show_progress_ring: bool,
     #[serde(default = "default_midnight")]
     pub theme: String,
+    #[serde(default = "default_classic")]
+    pub ui_style: String,
+    #[serde(default = "default_segoe")]
+    pub font: String,
 }
 
 fn default_true() -> bool {
@@ -36,6 +40,14 @@ fn default_youtube() -> String {
 
 fn default_midnight() -> String {
     "midnight".to_string()
+}
+
+fn default_classic() -> String {
+    "classic".to_string()
+}
+
+fn default_segoe() -> String {
+    "segoe".to_string()
 }
 
 impl Default for AppSettings {
@@ -54,6 +66,8 @@ impl Default for AppSettings {
             always_on_top: false,
             show_progress_ring: true,
             theme: "midnight".to_string(),
+            ui_style: "classic".to_string(),
+            font: "segoe".to_string(),
         }
     }
 }
@@ -71,6 +85,9 @@ impl AppSettings {
     pub fn save(&self, config_dir: &PathBuf) {
         let path = config_dir.join("settings.json");
         let _ = fs::create_dir_all(config_dir);
-        let _ = fs::write(&path, serde_json::to_string_pretty(self).unwrap_or_default());
+        let _ = fs::write(
+            &path,
+            serde_json::to_string_pretty(self).unwrap_or_default(),
+        );
     }
 }

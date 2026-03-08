@@ -1,8 +1,10 @@
 mod settings;
+mod stats;
 mod timer;
 mod wallpaper_manager;
-mod stats;
 
+use settings::AppSettings;
+use stats::SessionStats;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::Duration;
@@ -12,10 +14,8 @@ use tauri::{
     webview::NewWindowResponse,
     AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder,
 };
-use settings::AppSettings;
 use timer::{PomodoroTimer, TimerStatus};
 use wallpaper_manager::WallpaperManager;
-use stats::SessionStats;
 
 struct AppState {
     timer: PomodoroTimer,
@@ -130,16 +130,12 @@ async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
         }
     } else {
         let parsed_url: url::Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
-        let window = WebviewWindowBuilder::new(
-            &app,
-            "tidal",
-            WebviewUrl::External(parsed_url),
-        )
-        .title("Tidal - PulsoDoro")
-        .inner_size(1024.0, 700.0)
-        .on_new_window(|_url, _features| NewWindowResponse::Allow)
-        .build()
-        .map_err(|e| e.to_string())?;
+        let window = WebviewWindowBuilder::new(&app, "tidal", WebviewUrl::External(parsed_url))
+            .title("Tidal - PulsoDoro")
+            .inner_size(1024.0, 700.0)
+            .on_new_window(|_url, _features| NewWindowResponse::Allow)
+            .build()
+            .map_err(|e| e.to_string())?;
 
         let app_handle = app.clone();
         window.on_window_event(move |event| {
@@ -172,8 +168,14 @@ fn start_timer_loop(app: AppHandle) {
 
         if let Some(new_state) = transition {
             // Record focus completion (only when focus timer naturally reaches 0)
-            if new_state == timer::TimerState::ShortBreak || new_state == timer::TimerState::LongBreak {
-                state.stats.lock().unwrap().record_completion(&state.config_dir);
+            if new_state == timer::TimerState::ShortBreak
+                || new_state == timer::TimerState::LongBreak
+            {
+                state
+                    .stats
+                    .lock()
+                    .unwrap()
+                    .record_completion(&state.config_dir);
             }
 
             let change_wallpaper = state.settings.lock().unwrap().change_wallpaper;
@@ -189,7 +191,9 @@ fn start_timer_loop(app: AppHandle) {
                 timer::TimerState::Focus => "Focus time! Let's get to work.",
                 timer::TimerState::ShortBreak => "Short break! Take a breather.",
                 timer::TimerState::LongBreak => "Long break! You've earned it.",
-                timer::TimerState::Idle => unreachable!("transition_to_next_state never returns Idle"),
+                timer::TimerState::Idle => {
+                    unreachable!("transition_to_next_state never returns Idle")
+                }
             };
 
             let _ = app.emit("timer-notification", message);

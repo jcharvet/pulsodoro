@@ -352,7 +352,7 @@ mod tests {
         let timer = short_timer();
         timer.start();
         timer.skip(); // move to ShortBreak
-        // Now mutate cycle to prove reset clears it
+                      // Now mutate cycle to prove reset clears it
         {
             let mut status = timer.status.lock().unwrap();
             status.cycle = 3;
@@ -394,7 +394,7 @@ mod tests {
     fn tick_decrements_remaining_secs() {
         let timer = short_timer();
         timer.start(); // transitions Idle→Focus, sets remaining from durations
-        // Now override remaining to 5 so we can observe decrement clearly
+                       // Now override remaining to 5 so we can observe decrement clearly
         {
             let mut status = timer.status.lock().unwrap();
             status.remaining_secs = 5;
@@ -708,7 +708,10 @@ mod tests {
 
         let status = timer.get_status();
         assert_eq!(status.state, TimerState::ShortBreak);
-        assert!(status.is_running, "is_running should remain true after tick transition");
+        assert!(
+            status.is_running,
+            "is_running should remain true after tick transition"
+        );
     }
 
     #[test]
@@ -720,7 +723,10 @@ mod tests {
 
         let result = timer.skip();
         assert_eq!(result, Some(TimerState::ShortBreak));
-        assert!(!timer.get_status().is_running, "skip should not change is_running");
+        assert!(
+            !timer.get_status().is_running,
+            "skip should not change is_running"
+        );
     }
 
     #[test]

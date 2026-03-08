@@ -72,6 +72,8 @@ const themeGrid = document.getElementById("theme-grid");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
+const uiStyleSelect = document.getElementById("ui-style-select");
+const fontSelect = document.getElementById("font-select");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const progressRingSvg = document.getElementById("progress-ring");
 const statsDisplay = document.getElementById("stats-display");
@@ -177,7 +179,10 @@ async function setBackground(state) {
   let dataUrl = "";
   if (state === "Focus" && savedFocusBg) {
     dataUrl = await loadBgDataUrl(savedFocusBg);
-  } else if ((state === "ShortBreak" || state === "LongBreak") && savedBreakBg) {
+  } else if (
+    (state === "ShortBreak" || state === "LongBreak") &&
+    savedBreakBg
+  ) {
     dataUrl = await loadBgDataUrl(savedBreakBg);
   }
 
@@ -311,7 +316,9 @@ function updateUI(status) {
   };
   stateLabel.textContent = stateNames[status.state] || status.state;
 
+  const keepGlass = document.body.classList.contains("glass");
   document.body.className = "";
+  if (keepGlass) document.body.classList.add("glass");
   if (status.state === "Focus") document.body.classList.add("focus");
   else if (status.state === "ShortBreak")
     document.body.classList.add("short-break");
@@ -370,6 +377,24 @@ async function setAlwaysOnTop(value) {
 pinBtn.addEventListener("click", () => {
   setAlwaysOnTop(!alwaysOnTop);
 });
+
+function applyUiStyle(style) {
+  document.body.classList.toggle("glass", style === "glass");
+}
+
+const FONT_MAP = {
+  segoe: "'Segoe UI', sans-serif",
+  consolas: "'Consolas', 'Courier New', monospace",
+  georgia: "'Georgia', 'Times New Roman', serif",
+  arial: "'Arial', 'Helvetica', sans-serif",
+};
+
+function applyFont(fontId) {
+  document.documentElement.style.setProperty(
+    "--timer-font",
+    FONT_MAP[fontId] || FONT_MAP.segoe,
+  );
+}
 
 // --- Fullscreen ---
 async function toggleFullscreen() {
@@ -442,6 +467,8 @@ settingsBtn.addEventListener("click", async () => {
   tidalUrlInput.value = settings.tidal_url || "";
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
+  uiStyleSelect.value = settings.ui_style || "classic";
+  fontSelect.value = settings.font || "segoe";
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -472,6 +499,8 @@ saveSettingsBtn.addEventListener("click", async () => {
     focus_background: pendingFocusBg,
     break_background: pendingBreakBg,
     theme: pendingTheme,
+    ui_style: uiStyleSelect.value,
+    font: fontSelect.value,
   };
   await invoke("save_settings", { settings });
 
@@ -480,6 +509,8 @@ saveSettingsBtn.addEventListener("click", async () => {
   showProgressRing = progressRingToggle.checked;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   setAlwaysOnTop(alwaysOnTopToggle.checked);
+  applyUiStyle(uiStyleSelect.value);
+  applyFont(fontSelect.value);
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
     customYouTubeId = newYtId;
@@ -529,7 +560,9 @@ navBtns.forEach((btn) => {
     navBtns.forEach((b) => b.classList.remove("active"));
     sections.forEach((s) => s.classList.remove("active"));
     btn.classList.add("active");
-    document.getElementById(`section-${btn.dataset.section}`).classList.add("active");
+    document
+      .getElementById(`section-${btn.dataset.section}`)
+      .classList.add("active");
   });
 });
 
@@ -570,7 +603,9 @@ function renderThemeCards(activeThemeId) {
     card.addEventListener("click", () => {
       pendingTheme = id;
       applyTheme(id);
-      themeGrid.querySelectorAll(".theme-card").forEach((c) => c.classList.remove("active"));
+      themeGrid
+        .querySelectorAll(".theme-card")
+        .forEach((c) => c.classList.remove("active"));
       card.classList.add("active");
     });
 
@@ -580,7 +615,10 @@ function renderThemeCards(activeThemeId) {
 
 // --- Music Source Toggle ---
 musicSourceSelect.addEventListener("change", () => {
-  youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
+  youtubeSettings.classList.toggle(
+    "hidden",
+    musicSourceSelect.value !== "youtube",
+  );
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
 });
 
@@ -665,6 +703,8 @@ async function init() {
   showProgressRing = settings.show_progress_ring ?? true;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);
+  applyUiStyle(settings.ui_style || "classic");
+  applyFont(settings.font || "segoe");
 
   const status = await invoke("get_timer_status");
   updateUI(status);

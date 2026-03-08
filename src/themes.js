@@ -9,7 +9,8 @@ export const THEMES = {
       shortBreakRgb: "46, 204, 113",
       longBreak: "#9b59b6",
       longBreakRgb: "155, 89, 182",
-      background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+      background:
+        "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
       surface: "rgba(255, 255, 255, 0.08)",
       surfaceHover: "rgba(255, 255, 255, 0.15)",
       surfaceBorder: "rgba(255, 255, 255, 0.15)",
@@ -31,7 +32,8 @@ export const THEMES = {
       shortBreakRgb: "39, 174, 96",
       longBreak: "#f1c40f",
       longBreakRgb: "241, 196, 15",
-      background: "linear-gradient(135deg, #1a1210 0%, #2c1810 50%, #3d2014 100%)",
+      background:
+        "linear-gradient(135deg, #1a1210 0%, #2c1810 50%, #3d2014 100%)",
       surface: "rgba(255, 200, 150, 0.06)",
       surfaceHover: "rgba(255, 200, 150, 0.12)",
       surfaceBorder: "rgba(255, 180, 120, 0.15)",
@@ -53,7 +55,8 @@ export const THEMES = {
       shortBreakRgb: "26, 188, 156",
       longBreak: "#a29bfe",
       longBreakRgb: "162, 155, 254",
-      background: "linear-gradient(135deg, #0a0e1a 0%, #0d1b2a 50%, #1b2838 100%)",
+      background:
+        "linear-gradient(135deg, #0a0e1a 0%, #0d1b2a 50%, #1b2838 100%)",
       surface: "rgba(150, 200, 255, 0.06)",
       surfaceHover: "rgba(150, 200, 255, 0.12)",
       surfaceBorder: "rgba(150, 200, 255, 0.15)",
@@ -75,7 +78,8 @@ export const THEMES = {
       shortBreakRgb: "168, 216, 168",
       longBreak: "#c9a8e8",
       longBreakRgb: "201, 168, 232",
-      background: "linear-gradient(135deg, #2a1520 0%, #301a28 50%, #1e1525 100%)",
+      background:
+        "linear-gradient(135deg, #2a1520 0%, #301a28 50%, #1e1525 100%)",
       surface: "rgba(232, 145, 176, 0.06)",
       surfaceHover: "rgba(232, 145, 176, 0.12)",
       surfaceBorder: "rgba(232, 145, 176, 0.15)",
@@ -97,7 +101,8 @@ export const THEMES = {
       shortBreakRgb: "72, 182, 160",
       longBreak: "#b6a848",
       longBreakRgb: "182, 168, 72",
-      background: "linear-gradient(135deg, #0e1a0e 0%, #142018 50%, #1a2614 100%)",
+      background:
+        "linear-gradient(135deg, #0e1a0e 0%, #142018 50%, #1a2614 100%)",
       surface: "rgba(122, 182, 72, 0.06)",
       surfaceHover: "rgba(122, 182, 72, 0.12)",
       surfaceBorder: "rgba(122, 182, 72, 0.12)",

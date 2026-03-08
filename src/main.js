@@ -73,6 +73,7 @@ const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
 const uiStyleSelect = document.getElementById("ui-style-select");
+const fontSelect = document.getElementById("font-select");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const progressRingSvg = document.getElementById("progress-ring");
 const statsDisplay = document.getElementById("stats-display");
@@ -378,6 +379,20 @@ function applyUiStyle(style) {
   document.body.classList.toggle("glass", style === "glass");
 }
 
+const FONT_MAP = {
+  segoe: "'Segoe UI', sans-serif",
+  consolas: "'Consolas', 'Courier New', monospace",
+  georgia: "'Georgia', 'Times New Roman', serif",
+  arial: "'Arial', 'Helvetica', sans-serif",
+};
+
+function applyFont(fontId) {
+  document.documentElement.style.setProperty(
+    "--timer-font",
+    FONT_MAP[fontId] || FONT_MAP.segoe,
+  );
+}
+
 // --- Fullscreen ---
 async function toggleFullscreen() {
   const win = getCurrentWindow();
@@ -450,6 +465,7 @@ settingsBtn.addEventListener("click", async () => {
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
   uiStyleSelect.value = settings.ui_style || "classic";
+  fontSelect.value = settings.font || "segoe";
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -481,6 +497,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     break_background: pendingBreakBg,
     theme: pendingTheme,
     ui_style: uiStyleSelect.value,
+    font: fontSelect.value,
   };
   await invoke("save_settings", { settings });
 
@@ -490,6 +507,7 @@ saveSettingsBtn.addEventListener("click", async () => {
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   setAlwaysOnTop(alwaysOnTopToggle.checked);
   applyUiStyle(uiStyleSelect.value);
+  applyFont(fontSelect.value);
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
     customYouTubeId = newYtId;
@@ -676,6 +694,7 @@ async function init() {
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);
   applyUiStyle(settings.ui_style || "classic");
+  applyFont(settings.font || "segoe");
 
   const status = await invoke("get_timer_status");
   updateUI(status);

@@ -312,7 +312,9 @@ function updateUI(status) {
   };
   stateLabel.textContent = stateNames[status.state] || status.state;
 
+  const keepGlass = document.body.classList.contains("glass");
   document.body.className = "";
+  if (keepGlass) document.body.classList.add("glass");
   if (status.state === "Focus") document.body.classList.add("focus");
   else if (status.state === "ShortBreak")
     document.body.classList.add("short-break");

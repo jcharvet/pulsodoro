@@ -626,19 +626,12 @@ body.glass #controls button:hover:not(:disabled) {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
-body.glass.short-break #controls button {
-    border-color: rgba(255, 255, 255, 0.18);
-}
-
-body.glass.short-break #controls button:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
+body.glass.short-break #controls button,
 body.glass.long-break #controls button {
     border-color: rgba(255, 255, 255, 0.18);
 }
 
+body.glass.short-break #controls button:hover:not(:disabled),
 body.glass.long-break #controls button:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.18);
     border-color: rgba(255, 255, 255, 0.3);

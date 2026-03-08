@@ -22,6 +22,8 @@ pub struct AppSettings {
     pub always_on_top: bool,
     #[serde(default = "default_true")]
     pub show_progress_ring: bool,
+    #[serde(default = "default_midnight")]
+    pub theme: String,
 }
 
 fn default_true() -> bool {
@@ -30,6 +32,10 @@ fn default_true() -> bool {
 
 fn default_youtube() -> String {
     "youtube".to_string()
+}
+
+fn default_midnight() -> String {
+    "midnight".to_string()
 }
 
 impl Default for AppSettings {
@@ -47,6 +53,7 @@ impl Default for AppSettings {
             tidal_url: String::new(),
             always_on_top: false,
             show_progress_ring: true,
+            theme: "midnight".to_string(),
         }
     }
 }

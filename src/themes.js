@@ -140,10 +140,4 @@ export function applyTheme(themeId) {
   root.style.setProperty("--settings-bg", c.settingsBg);
   root.style.setProperty("--overlay-color", c.overlay);
   root.style.setProperty("--blur-amount", theme.blur);
-
-  // Update the background gradient for #bg-image
-  const bgImage = document.getElementById("bg-image");
-  if (bgImage && !bgImage.style.backgroundImage.startsWith("url")) {
-    bgImage.style.background = c.background;
-  }
 }

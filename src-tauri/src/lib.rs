@@ -130,10 +130,25 @@ async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
         }
     } else {
         let parsed_url: url::Url = url.parse().map_err(|e: url::ParseError| e.to_string())?;
+        if parsed_url.scheme() != "https"
+            || !parsed_url
+                .host_str()
+                .map_or(false, |h| h.ends_with("tidal.com"))
+        {
+            return Err("Invalid URL: only https://…tidal.com URLs are allowed".to_string());
+        }
         let window = WebviewWindowBuilder::new(&app, "tidal", WebviewUrl::External(parsed_url))
             .title("Tidal - PulsoDoro")
             .inner_size(1024.0, 700.0)
-            .on_new_window(|_url, _features| NewWindowResponse::Allow)
+            .on_new_window(|url, _features| {
+                if url.scheme() == "https"
+                    && url.host_str().map_or(false, |h| h.ends_with("tidal.com"))
+                {
+                    NewWindowResponse::Allow
+                } else {
+                    NewWindowResponse::Deny
+                }
+            })
             .build()
             .map_err(|e| e.to_string())?;
 

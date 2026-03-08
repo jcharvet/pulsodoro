@@ -247,11 +247,17 @@ window.onYouTubeIframeAPIReady = function () {
 
 musicToggle.addEventListener("click", async () => {
   if (musicSource === "tidal") {
-    await invoke("toggle_tidal", {
-      url: tidalUrlInput.value.trim() || "https://listen.tidal.com",
-    });
-    musicToggle.classList.add("active");
-    musicPlaying = true;
+    try {
+      await invoke("toggle_tidal", {
+        url: tidalUrlInput.value.trim() || "https://listen.tidal.com",
+      });
+      musicToggle.classList.add("active");
+      musicPlaying = true;
+    } catch (e) {
+      console.error("Failed to toggle Tidal window:", e);
+      musicToggle.classList.remove("active");
+      musicPlaying = false;
+    }
     return;
   }
   // YouTube
@@ -316,9 +322,7 @@ function updateUI(status) {
   };
   stateLabel.textContent = stateNames[status.state] || status.state;
 
-  const keepGlass = document.body.classList.contains("glass");
-  document.body.className = "";
-  if (keepGlass) document.body.classList.add("glass");
+  document.body.classList.remove("focus", "short-break", "long-break");
   if (status.state === "Focus") document.body.classList.add("focus");
   else if (status.state === "ShortBreak")
     document.body.classList.add("short-break");
@@ -540,7 +544,7 @@ saveSettingsBtn.addEventListener("click", async () => {
   savedBreakBg = pendingBreakBg;
   currentBgState = null; // Force refresh
   const status = await invoke("get_timer_status");
-  setBackground(status.state);
+  await setBackground(status.state);
   currentTheme = pendingTheme;
   applyTheme(currentTheme);
 

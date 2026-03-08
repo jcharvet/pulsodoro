@@ -1,122 +1,252 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'models/timer_state.dart';
+import 'services/timer_service.dart';
+import 'services/settings_service.dart';
+import 'services/stats_service.dart';
+import 'screens/timer_screen.dart';
+import 'screens/stats_screen.dart';
+import 'screens/settings_screen.dart';
+import 'theme/tokens.dart';
+import 'theme/app_theme.dart';
+import 'widgets/glass_panel.dart';
+import 'widgets/glass_nav_bar.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  runApp(const PulsodoroApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class PulsodoroApp extends StatefulWidget {
+  const PulsodoroApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<PulsodoroApp> createState() => _PulsodoroAppState();
+}
+
+class _PulsodoroAppState extends State<PulsodoroApp> {
+  final _timerService = TimerService();
+  final _settingsService = SettingsService();
+  final _statsService = StatsService();
+
+  Timer? _ticker;
+  int _tabIndex = 0;
+  bool _settingsOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await _settingsService.load();
+    await _statsService.load();
+
+    // Apply saved durations
+    final s = _settingsService.settings;
+    _timerService.setDurations(
+      focus: s.focusMinutes,
+      shortBreak: s.shortBreakMinutes,
+      longBreak: s.longBreakMinutes,
+    );
+
+    // Listen for settings changes to update timer durations
+    _settingsService.addListener(_onSettingsChanged);
+
+    // Listen for timer transitions to record stats
+    _timerService.addListener(_onTimerChanged);
+
+    // Start the 1-second ticker
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      final transition = _timerService.tick();
+      if (transition != null) {
+        _onTransition(transition);
+      }
+    });
+
+    setState(() {});
+  }
+
+  void _onSettingsChanged() {
+    final s = _settingsService.settings;
+    _timerService.setDurations(
+      focus: s.focusMinutes,
+      shortBreak: s.shortBreakMinutes,
+      longBreak: s.longBreakMinutes,
+    );
+    setState(() {}); // Rebuild with new theme
+  }
+
+  TimerState? _prevState;
+  void _onTimerChanged() {
+    final current = _timerService.status.state;
+    // Record completion when Focus ends (transitions to a break)
+    if (_prevState == TimerState.focus &&
+        (current == TimerState.shortBreak || current == TimerState.longBreak)) {
+      _statsService.recordCompletion();
+    }
+    _prevState = current;
+  }
+
+  void _onTransition(TimerState newState) {
+    // TODO: play chime sound if enabled
+    // TODO: show notification
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    _settingsService.removeListener(_onSettingsChanged);
+    _timerService.removeListener(_onTimerChanged);
+    _timerService.dispose();
+    _settingsService.dispose();
+    _statsService.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeId = _settingsService.settings.theme;
+    final theme = AppThemes.get(themeId);
+    final accent = _accentForState(_timerService.status, theme);
+
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+      title: 'PulsoDoro',
+      debugShowCheckedModeBanner: false,
+      theme: buildAppTheme(theme),
+      home: Stack(
+        children: [
+          // Main scaffold
+          Scaffold(
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: theme.bgGradient,
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    // Top bar
+                    _buildTopBar(theme, accent),
+                    // Screen content
+                    Expanded(
+                      child: _tabIndex == 0
+                          ? TimerScreen(
+                              timerService: _timerService,
+                              theme: theme,
+                              onOpenSettings: () =>
+                                  setState(() => _settingsOpen = true),
+                            )
+                          : StatsScreen(
+                              statsService: _statsService,
+                              theme: theme,
+                              accent: accent,
+                            ),
+                    ),
+                    // Bottom nav
+                    GlassNavBar(
+                      selectedIndex: _tabIndex,
+                      soundEnabled: _settingsService.settings.soundEnabled,
+                      accent: accent,
+                      theme: theme,
+                      onTabTap: (i) => setState(() => _tabIndex = i),
+                      onSoundToggle: () {
+                        final s = _settingsService.settings;
+                        _settingsService.update(
+                          s.copyWith(soundEnabled: !s.soundEnabled),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Settings overlay
+          if (_settingsOpen)
+            SettingsScreen(
+              settingsService: _settingsService,
+              theme: theme,
+              accent: accent,
+              onClose: () => setState(() => _settingsOpen = false),
+            ),
+        ],
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+  Widget _buildTopBar(PulsodoroTheme theme, Color accent) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: GlassPanel(
+        color: theme.surface,
+        borderColor: theme.surfaceBorder,
+        blur: theme.blur,
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            children: [
+              const SizedBox(width: 16),
+              Text(
+                'PulsoDoro',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: theme.textPrimary.withValues(alpha: 0.8),
+                ),
+              ),
+              const Spacer(),
+              ListenableBuilder(
+                listenable: _timerService,
+                builder: (context, _) {
+                  final status = _timerService.status;
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Round ${status.cycle}/4',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: accent.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => setState(() => _settingsOpen = true),
+                child: Icon(
+                  Icons.settings_outlined,
+                  size: 18,
+                  color: theme.textMuted.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(width: 16),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
     );
+  }
+
+  Color _accentForState(TimerStatus status, PulsodoroTheme theme) {
+    return switch (status.state) {
+      TimerState.idle || TimerState.focus => theme.focus,
+      TimerState.shortBreak => theme.shortBreak,
+      TimerState.longBreak => theme.longBreak,
+    };
   }
 }

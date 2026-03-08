@@ -612,6 +612,52 @@ body.long-break .dot.active {
     display: block;
 }
 
+/* --- Glassmorphism UI Style --- */
+body.glass #controls button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+body.glass #controls button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+body.glass.short-break #controls button {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+body.glass.short-break #controls button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+body.glass.long-break #controls button {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+body.glass.long-break #controls button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+body.glass #bottom-bar {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.glass #music-toggle,
+body.glass #settings-btn,
+body.glass #pin-btn,
+body.glass #fullscreen-btn {
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+}
+
 .hidden {
     display: none !important;
 }

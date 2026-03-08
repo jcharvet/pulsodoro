@@ -179,7 +179,10 @@ async function setBackground(state) {
   let dataUrl = "";
   if (state === "Focus" && savedFocusBg) {
     dataUrl = await loadBgDataUrl(savedFocusBg);
-  } else if ((state === "ShortBreak" || state === "LongBreak") && savedBreakBg) {
+  } else if (
+    (state === "ShortBreak" || state === "LongBreak") &&
+    savedBreakBg
+  ) {
     dataUrl = await loadBgDataUrl(savedBreakBg);
   }
 
@@ -557,7 +560,9 @@ navBtns.forEach((btn) => {
     navBtns.forEach((b) => b.classList.remove("active"));
     sections.forEach((s) => s.classList.remove("active"));
     btn.classList.add("active");
-    document.getElementById(`section-${btn.dataset.section}`).classList.add("active");
+    document
+      .getElementById(`section-${btn.dataset.section}`)
+      .classList.add("active");
   });
 });
 
@@ -598,7 +603,9 @@ function renderThemeCards(activeThemeId) {
     card.addEventListener("click", () => {
       pendingTheme = id;
       applyTheme(id);
-      themeGrid.querySelectorAll(".theme-card").forEach((c) => c.classList.remove("active"));
+      themeGrid
+        .querySelectorAll(".theme-card")
+        .forEach((c) => c.classList.remove("active"));
       card.classList.add("active");
     });
 
@@ -608,7 +615,10 @@ function renderThemeCards(activeThemeId) {
 
 // --- Music Source Toggle ---
 musicSourceSelect.addEventListener("change", () => {
-  youtubeSettings.classList.toggle("hidden", musicSourceSelect.value !== "youtube");
+  youtubeSettings.classList.toggle(
+    "hidden",
+    musicSourceSelect.value !== "youtube",
+  );
   tidalSettings.classList.toggle("hidden", musicSourceSelect.value !== "tidal");
 });
 

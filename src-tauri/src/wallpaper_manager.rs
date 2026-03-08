@@ -23,10 +23,10 @@ impl WallpaperManager {
             }
         };
 
-        if let Ok(resource_path) = app
-            .path()
-            .resolve(format!("resources/wallpapers/{}", filename), tauri::path::BaseDirectory::Resource)
-        {
+        if let Ok(resource_path) = app.path().resolve(
+            format!("resources/wallpapers/{}", filename),
+            tauri::path::BaseDirectory::Resource,
+        ) {
             let _ = wallpaper::set_from_path(resource_path.to_str().unwrap_or_default());
         }
     }

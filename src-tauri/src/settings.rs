@@ -85,6 +85,9 @@ impl AppSettings {
     pub fn save(&self, config_dir: &PathBuf) {
         let path = config_dir.join("settings.json");
         let _ = fs::create_dir_all(config_dir);
-        let _ = fs::write(&path, serde_json::to_string_pretty(self).unwrap_or_default());
+        let _ = fs::write(
+            &path,
+            serde_json::to_string_pretty(self).unwrap_or_default(),
+        );
     }
 }

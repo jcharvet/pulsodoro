@@ -61,99 +61,113 @@
 
     <div id="settings-panel" class="hidden">
         <div id="settings-content">
-            <h2>Settings</h2>
-            <div class="settings-tabs">
-                <button class="tab-btn active" data-tab="timer">Timer</button>
-                <button class="tab-btn" data-tab="music">Music</button>
-                <button class="tab-btn" data-tab="appearance">Appearance</button>
+            <div class="settings-sidebar">
+                <h2>Settings</h2>
+                <nav class="settings-nav">
+                    <button class="nav-btn active" data-section="timer">Timer</button>
+                    <button class="nav-btn" data-section="music">Music</button>
+                    <button class="nav-btn" data-section="look">Look</button>
+                    <button class="nav-btn" data-section="themes">Themes</button>
+                </nav>
             </div>
-
-            <div id="tab-timer" class="tab-content active">
-                <div class="setting-group">
-                    <label>Focus (minutes)</label>
-                    <input type="number" id="focus-duration" min="1" max="120" value="25" />
-                </div>
-                <div class="setting-group">
-                    <label>Short Break (minutes)</label>
-                    <input type="number" id="short-break-duration" min="1" max="60" value="5" />
-                </div>
-                <div class="setting-group">
-                    <label>Long Break (minutes)</label>
-                    <input type="number" id="long-break-duration" min="1" max="60" value="15" />
-                </div>
-            </div>
-
-            <div id="tab-music" class="tab-content">
-                <div class="setting-group">
-                    <label>Music Source</label>
-                    <select id="music-source">
-                        <option value="youtube">YouTube</option>
-                        <option value="tidal">Tidal</option>
-                    </select>
-                </div>
-                <div id="youtube-settings" class="setting-group">
-                    <label>YouTube Music URL / ID</label>
-                    <input type="text" id="youtube-url" placeholder="Paste YouTube URL or video ID" />
-                </div>
-                <div id="tidal-settings" class="setting-group hidden">
-                    <p class="hint" style="margin-bottom: 0.6rem;">
-                        1. Click the <strong>Music</strong> button to open Tidal<br/>
-                        2. Log in with your Tidal account (only needed once)<br/>
-                        3. Pick your music and hit play<br/>
-                        4. Click <strong>Music</strong> again to hide the window &mdash; audio keeps playing<br/>
-                        5. Click <strong>Music</strong> to bring it back anytime
-                    </p>
-                    <label>Starting URL <span class="hint">(optional)</span></label>
-                    <input type="text" id="tidal-url" placeholder="Paste a Tidal playlist or album URL" />
-                </div>
-                <div class="setting-group">
-                    <label>
-                        <input type="checkbox" id="sound-toggle" checked />
-                        Sound alert on transition
-                    </label>
-                </div>
-            </div>
-
-            <div id="tab-appearance" class="tab-content">
-                <div class="setting-group">
-                    <label>
-                        <input type="checkbox" id="wallpaper-toggle" checked />
-                        Change desktop wallpaper
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label>Focus Background</label>
-                    <div class="bg-row">
-                        <span id="focus-bg-name" class="bg-file-name">Default gradient</span>
-                        <button id="pick-focus-bg" class="pick-btn">Browse...</button>
-                        <button id="clear-focus-bg" class="pick-btn">Clear</button>
+            <div class="settings-main">
+                <div id="section-timer" class="settings-section active">
+                    <h3>Timer</h3>
+                    <div class="setting-group">
+                        <label>Focus (minutes)</label>
+                        <input type="number" id="focus-duration" min="1" max="120" value="25" />
+                    </div>
+                    <div class="setting-group">
+                        <label>Short Break (minutes)</label>
+                        <input type="number" id="short-break-duration" min="1" max="60" value="5" />
+                    </div>
+                    <div class="setting-group">
+                        <label>Long Break (minutes)</label>
+                        <input type="number" id="long-break-duration" min="1" max="60" value="15" />
                     </div>
                 </div>
-                <div class="setting-group">
-                    <label>Break Background</label>
-                    <div class="bg-row">
-                        <span id="break-bg-name" class="bg-file-name">Default gradient</span>
-                        <button id="pick-break-bg" class="pick-btn">Browse...</button>
-                        <button id="clear-break-bg" class="pick-btn">Clear</button>
+
+                <div id="section-music" class="settings-section">
+                    <h3>Music</h3>
+                    <div class="setting-group">
+                        <label>Music Source</label>
+                        <select id="music-source">
+                            <option value="youtube">YouTube</option>
+                            <option value="tidal">Tidal</option>
+                        </select>
+                    </div>
+                    <div id="youtube-settings" class="setting-group">
+                        <label>YouTube Music URL / ID</label>
+                        <input type="text" id="youtube-url" placeholder="Paste YouTube URL or video ID" />
+                    </div>
+                    <div id="tidal-settings" class="setting-group hidden">
+                        <p class="hint" style="margin-bottom: 0.6rem;">
+                            1. Click the <strong>Music</strong> button to open Tidal<br/>
+                            2. Log in with your Tidal account (only needed once)<br/>
+                            3. Pick your music and hit play<br/>
+                            4. Click <strong>Music</strong> again to hide the window &mdash; audio keeps playing<br/>
+                            5. Click <strong>Music</strong> to bring it back anytime
+                        </p>
+                        <label>Starting URL <span class="hint">(optional)</span></label>
+                        <input type="text" id="tidal-url" placeholder="Paste a Tidal playlist or album URL" />
+                    </div>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="sound-toggle" checked />
+                            Sound alert on transition
+                        </label>
                     </div>
                 </div>
-                <div class="setting-group">
-                    <label>
-                        <input type="checkbox" id="progress-ring-toggle" checked />
-                        Show progress ring
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label>
-                        <input type="checkbox" id="always-on-top-toggle" />
-                        Always on top
-                    </label>
-                </div>
-            </div>
 
-            <div class="settings-actions">
-                <button id="save-settings">Save</button>
-                <button id="close-settings">Cancel</button>
+                <div id="section-look" class="settings-section">
+                    <h3>Look</h3>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="wallpaper-toggle" checked />
+                            Change desktop wallpaper
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <label>Focus Background</label>
+                        <div class="bg-row">
+                            <span id="focus-bg-name" class="bg-file-name">Default gradient</span>
+                            <button id="pick-focus-bg" class="pick-btn">Browse...</button>
+                            <button id="clear-focus-bg" class="pick-btn">Clear</button>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <label>Break Background</label>
+                        <div class="bg-row">
+                            <span id="break-bg-name" class="bg-file-name">Default gradient</span>
+                            <button id="pick-break-bg" class="pick-btn">Browse...</button>
+                            <button id="clear-break-bg" class="pick-btn">Clear</button>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="progress-ring-toggle" checked />
+                            Show progress ring
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="always-on-top-toggle" />
+                            Always on top
+                        </label>
+                    </div>
+                </div>
+
+                <div id="section-themes" class="settings-section">
+                    <h3>Themes</h3>
+                    <div id="theme-grid" class="theme-grid">
+                        <!-- Theme cards rendered by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button id="save-settings">Save</button>
+                    <button id="close-settings">Cancel</button>
+                </div>
             </div>
         </div>
     </div>

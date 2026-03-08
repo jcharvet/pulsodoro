@@ -511,6 +511,7 @@ saveSettingsBtn.addEventListener("click", async () => {
   const status = await invoke("get_timer_status");
   setBackground(status.state);
   currentTheme = pendingTheme;
+  applyTheme(currentTheme);
 
   settingsPanel.classList.add("hidden");
 });
@@ -610,8 +611,13 @@ document.addEventListener("keydown", async (e) => {
     return;
   }
 
-  // Skip when settings panel is open or typing in an input
-  if (!settingsPanel.classList.contains("hidden")) return;
+  // Escape closes settings panel
+  if (!settingsPanel.classList.contains("hidden")) {
+    if (e.code === "Escape") {
+      closeSettingsBtn.click();
+    }
+    return;
+  }
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
   switch (e.code) {

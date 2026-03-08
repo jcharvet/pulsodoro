@@ -184,8 +184,9 @@ body.long-break .ring-endpoint {
 }
 
 .dot.completed {
-    background: #533483;
-    border-color: #533483;
+    background: var(--long-break-color);
+    border-color: var(--long-break-color);
+    opacity: 0.6;
 }
 
 #controls {

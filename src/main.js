@@ -2,6 +2,7 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 const { open } = window.__TAURI__.dialog;
 const { getCurrentWindow } = window.__TAURI__.window;
+import { THEMES, applyTheme } from "./themes.js";
 
 // --- DOM Elements ---
 const stateLabel = document.getElementById("state-label");
@@ -65,8 +66,9 @@ const musicSourceSelect = document.getElementById("music-source");
 const youtubeSettings = document.getElementById("youtube-settings");
 const tidalSettings = document.getElementById("tidal-settings");
 const tidalUrlInput = document.getElementById("tidal-url");
-const tabBtns = document.querySelectorAll(".tab-btn");
-const tabContents = document.querySelectorAll(".tab-content");
+const navBtns = document.querySelectorAll(".nav-btn");
+const sections = document.querySelectorAll(".settings-section");
+const themeGrid = document.getElementById("theme-grid");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
@@ -81,6 +83,8 @@ let pendingBreakBg = "";
 let soundEnabled = true;
 let alwaysOnTop = false;
 let musicSource = "youtube";
+let currentTheme = "midnight";
+let pendingTheme = "midnight";
 
 // --- Sound Alert ---
 async function playChime() {
@@ -442,11 +446,14 @@ settingsBtn.addEventListener("click", async () => {
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
   breakBgName.textContent = fileNameFromPath(settings.break_background);
-  // Reset to Timer tab
-  tabBtns.forEach((b) => b.classList.remove("active"));
-  tabContents.forEach((c) => c.classList.remove("active"));
-  tabBtns[0].classList.add("active");
-  tabContents[0].classList.add("active");
+  // Reset to Timer section
+  navBtns.forEach((b) => b.classList.remove("active"));
+  sections.forEach((s) => s.classList.remove("active"));
+  navBtns[0].classList.add("active");
+  sections[0].classList.add("active");
+  // Load theme
+  pendingTheme = settings.theme || "midnight";
+  renderThemeCards(pendingTheme);
   settingsPanel.classList.remove("hidden");
 });
 
@@ -464,6 +471,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     show_progress_ring: progressRingToggle.checked,
     focus_background: pendingFocusBg,
     break_background: pendingBreakBg,
+    theme: pendingTheme,
   };
   await invoke("save_settings", { settings });
 
@@ -502,23 +510,73 @@ saveSettingsBtn.addEventListener("click", async () => {
   currentBgState = null; // Force refresh
   const status = await invoke("get_timer_status");
   setBackground(status.state);
+  currentTheme = pendingTheme;
+  applyTheme(currentTheme);
 
   settingsPanel.classList.add("hidden");
 });
 
 closeSettingsBtn.addEventListener("click", () => {
+  if (pendingTheme !== currentTheme) {
+    applyTheme(currentTheme);
+  }
   settingsPanel.classList.add("hidden");
 });
 
-// --- Settings Tabs ---
-tabBtns.forEach((btn) => {
+// --- Settings Navigation ---
+navBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
-    tabBtns.forEach((b) => b.classList.remove("active"));
-    tabContents.forEach((c) => c.classList.remove("active"));
+    navBtns.forEach((b) => b.classList.remove("active"));
+    sections.forEach((s) => s.classList.remove("active"));
     btn.classList.add("active");
-    document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+    document.getElementById(`section-${btn.dataset.section}`).classList.add("active");
   });
 });
+
+// --- Theme Cards ---
+function renderThemeCards(activeThemeId) {
+  themeGrid.innerHTML = "";
+  for (const [id, theme] of Object.entries(THEMES)) {
+    const card = document.createElement("div");
+    card.className = "theme-card" + (id === activeThemeId ? " active" : "");
+    card.dataset.theme = id;
+
+    const preview = document.createElement("div");
+    preview.className = "theme-card-preview";
+    preview.style.background = theme.colors.background;
+
+    const ring = document.createElement("div");
+    ring.className = "theme-card-ring";
+    ring.style.borderColor = theme.colors.focus;
+    preview.appendChild(ring);
+
+    const name = document.createElement("div");
+    name.className = "theme-card-name";
+    name.textContent = theme.name;
+
+    const desc = document.createElement("div");
+    desc.className = "theme-card-desc";
+    desc.textContent = theme.description;
+
+    const badge = document.createElement("div");
+    badge.className = "theme-card-active-badge";
+    badge.textContent = "\u2713 Active";
+
+    card.appendChild(preview);
+    card.appendChild(name);
+    card.appendChild(desc);
+    card.appendChild(badge);
+
+    card.addEventListener("click", () => {
+      pendingTheme = id;
+      applyTheme(id);
+      themeGrid.querySelectorAll(".theme-card").forEach((c) => c.classList.remove("active"));
+      card.classList.add("active");
+    });
+
+    themeGrid.appendChild(card);
+  }
+}
 
 // --- Music Source Toggle ---
 musicSourceSelect.addEventListener("change", () => {
@@ -553,8 +611,13 @@ document.addEventListener("keydown", async (e) => {
     return;
   }
 
-  // Skip when settings panel is open or typing in an input
-  if (!settingsPanel.classList.contains("hidden")) return;
+  // Escape closes settings panel
+  if (!settingsPanel.classList.contains("hidden")) {
+    if (e.code === "Escape") {
+      closeSettingsBtn.click();
+    }
+    return;
+  }
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
   switch (e.code) {
@@ -596,6 +659,9 @@ async function init() {
   soundEnabled = settings.sound_enabled;
   customYouTubeId = settings.custom_youtube_id || "";
   musicSource = settings.music_source || "youtube";
+  currentTheme = settings.theme || "midnight";
+  pendingTheme = currentTheme;
+  applyTheme(currentTheme);
   showProgressRing = settings.show_progress_ring ?? true;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);

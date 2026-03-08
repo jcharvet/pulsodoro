@@ -72,6 +72,7 @@ const themeGrid = document.getElementById("theme-grid");
 const pinBtn = document.getElementById("pin-btn");
 const alwaysOnTopToggle = document.getElementById("always-on-top-toggle");
 const progressRingToggle = document.getElementById("progress-ring-toggle");
+const uiStyleSelect = document.getElementById("ui-style-select");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const progressRingSvg = document.getElementById("progress-ring");
 const statsDisplay = document.getElementById("stats-display");
@@ -371,6 +372,10 @@ pinBtn.addEventListener("click", () => {
   setAlwaysOnTop(!alwaysOnTop);
 });
 
+function applyUiStyle(style) {
+  document.body.classList.toggle("glass", style === "glass");
+}
+
 // --- Fullscreen ---
 async function toggleFullscreen() {
   const win = getCurrentWindow();
@@ -442,6 +447,7 @@ settingsBtn.addEventListener("click", async () => {
   tidalUrlInput.value = settings.tidal_url || "";
   alwaysOnTopToggle.checked = settings.always_on_top;
   progressRingToggle.checked = settings.show_progress_ring;
+  uiStyleSelect.value = settings.ui_style || "classic";
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -472,6 +478,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     focus_background: pendingFocusBg,
     break_background: pendingBreakBg,
     theme: pendingTheme,
+    ui_style: uiStyleSelect.value,
   };
   await invoke("save_settings", { settings });
 
@@ -480,6 +487,7 @@ saveSettingsBtn.addEventListener("click", async () => {
   showProgressRing = progressRingToggle.checked;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   setAlwaysOnTop(alwaysOnTopToggle.checked);
+  applyUiStyle(uiStyleSelect.value);
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
     customYouTubeId = newYtId;
@@ -665,6 +673,7 @@ async function init() {
   showProgressRing = settings.show_progress_ring ?? true;
   progressRingSvg.classList.toggle("ring-hidden", !showProgressRing);
   if (settings.always_on_top) setAlwaysOnTop(true);
+  applyUiStyle(settings.ui_style || "classic");
 
   const status = await invoke("get_timer_status");
   updateUI(status);

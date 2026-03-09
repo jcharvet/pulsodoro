@@ -27,15 +27,17 @@ class SettingsScreen extends StatelessWidget {
       listenable: settingsService,
       builder: (context, _) {
         final s = settingsService.settings;
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: theme.bgGradient,
+        return Material(
+          type: MaterialType.transparency,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: theme.bgGradient,
+              ),
             ),
-          ),
-          child: SafeArea(
+            child: SafeArea(
             child: Column(
               children: [
                 // Header
@@ -115,6 +117,7 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );

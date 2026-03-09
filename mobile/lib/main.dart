@@ -206,11 +206,13 @@ class _PulsodoroAppState extends State<PulsodoroApp> {
           ),
           // Settings overlay
           if (_settingsOpen)
-            SettingsScreen(
-              settingsService: _settingsService,
-              theme: theme,
-              accent: accent,
-              onClose: () => setState(() => _settingsOpen = false),
+            Positioned.fill(
+              child: SettingsScreen(
+                settingsService: _settingsService,
+                theme: theme,
+                accent: accent,
+                onClose: () => setState(() => _settingsOpen = false),
+              ),
             ),
         ],
       ),

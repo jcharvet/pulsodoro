@@ -1,4 +1,4 @@
-package com.example.pulsodoro
+package com.pulsodoro.app
 
 import io.flutter.embedding.android.FlutterActivity
 

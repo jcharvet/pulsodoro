@@ -1,10 +1,13 @@
 # PulsoDoro
 
-A distraction-free Pomodoro timer built with Tauri v2 by [DHJVC Labs](https://dhjvc.com).
+A distraction-free Pomodoro timer by [DHJVC Labs](https://dhjvc.com).
+
+**Desktop** (Tauri v2) + **Mobile** (Flutter/Android) — two apps, one repo.
 
 ![Tauri](https://img.shields.io/badge/Tauri-v2-blue)
+![Flutter](https://img.shields.io/badge/Flutter-Android-02569B)
 ![Rust](https://img.shields.io/badge/Rust-backend-orange)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20Android-lightgrey)
 
 ## Features
 
@@ -24,20 +27,35 @@ A distraction-free Pomodoro timer built with Tauri v2 by [DHJVC Labs](https://dh
 
 ## Download
 
-**Windows installers** available on the [Releases page](https://github.com/jcharvet/pulsodoro/releases/latest).
+### Desktop (Windows / Linux)
+Installers available on the [latest desktop release](https://github.com/jcharvet/pulsodoro/releases/latest).
+
+### Mobile (Android)
+APK available on the [latest mobile release](https://github.com/jcharvet/pulsodoro/releases/tag/mobile-v1.0.0) — sideload on any Android device.
 
 ## Screenshots
 
+### Desktop
 | Timer | Settings |
 |-------|----------|
 | ![PulsoDoro Focus Mode](docs/pulsedoro-v0.2.png) | ![PulsoDoro Settings](docs/settings-v0.2.png) |
 
+### Mobile
+<img src="docs/mobile-v1.0.png" alt="PulsoDoro Mobile" width="300">
+
 ## Tech Stack
 
+### Desktop
 - **Frontend:** Vanilla HTML, CSS, JavaScript
 - **Backend:** Rust (Tauri v2)
 - **Desktop Integration:** Wallpaper switching via `wallpaper` crate
 - **Build Tool:** Vite
+
+### Mobile
+- **Framework:** Flutter (Dart)
+- **Background Timer:** Android foreground service
+- **Notifications:** Local notifications on timer transitions
+- **Audio:** Transition chime via audioplayers
 
 ## Getting Started
 
@@ -116,21 +134,27 @@ Installers will be generated in `src-tauri/target/release/bundle/`:
 
 ```
 pulsodoro/
-├── index.html              # Main app layout
-├── src/
-│   ├── main.js             # Frontend logic (timer UI, settings, music)
-│   └── styles.css          # Dark theme with state-based accent colors
-├── src-tauri/
+├── index.html                # Desktop app layout
+├── src/                      # Desktop frontend
+│   ├── main.js               # Frontend logic (timer UI, settings, music)
+│   └── styles.css            # Dark theme with state-based accent colors
+├── src-tauri/                # Desktop backend (Rust)
 │   ├── src/
-│   │   ├── main.rs          # Entry point
-│   │   ├── lib.rs           # Tauri setup, commands, tray, timer loop, Tidal window
-│   │   ├── timer.rs         # Pomodoro state machine
-│   │   ├── settings.rs      # Settings persistence (JSON)
-│   │   ├── stats.rs         # Session stats tracking (today/week)
+│   │   ├── main.rs           # Entry point
+│   │   ├── lib.rs            # Tauri setup, commands, tray, timer loop
+│   │   ├── timer.rs          # Pomodoro state machine
+│   │   ├── settings.rs       # Settings persistence (JSON)
+│   │   ├── stats.rs          # Session stats tracking
 │   │   └── wallpaper_manager.rs  # Desktop wallpaper switching
-│   ├── capabilities/        # Tauri v2 permissions
-│   ├── resources/wallpapers/ # Bundled wallpaper images
-│   └── tauri.conf.json      # Tauri configuration
+│   ├── capabilities/         # Tauri v2 permissions
+│   └── tauri.conf.json       # Tauri configuration
+├── mobile/                   # Mobile app (Flutter/Android)
+│   ├── lib/
+│   │   ├── main.dart         # App entry, timer logic, UI
+│   │   ├── screens/          # Settings screen
+│   │   └── widgets/          # Reusable UI components (glass panels, etc.)
+│   ├── android/              # Android platform config
+│   └── pubspec.yaml          # Flutter dependencies
 └── package.json
 ```
 

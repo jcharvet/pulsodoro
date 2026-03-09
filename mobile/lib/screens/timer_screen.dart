@@ -90,99 +90,108 @@ class TimerScreen extends StatelessWidget {
 
         return Column(
           children: [
-            const SizedBox(height: 20),
-            // State label
-            Text(
-              _stateLabel(status),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 3,
-                color: accent.withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Progress ring in glass circle
-            Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.04),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 1,
-                ),
-              ),
-              child: ProgressRing(
-                progress: status.progress,
-                color: accent,
-                size: 280,
-                showTicks: true,
+            // Scrollable content area
+            Expanded(
+              child: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    const SizedBox(height: 20),
+                    // State label
                     Text(
-                      status.timeDisplay,
+                      _stateLabel(status),
                       style: TextStyle(
-                        fontSize: 52,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: theme.textPrimary,
                         letterSpacing: 3,
-                        height: 1,
+                        color: accent.withValues(alpha: 0.7),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _subtitle(status),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: accent.withValues(alpha: 0.6),
+                    const SizedBox(height: 24),
+                    // Progress ring in glass circle
+                    Container(
+                      width: 280,
+                      height: 280,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.04),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          width: 1,
+                        ),
+                      ),
+                      child: ProgressRing(
+                        progress: status.progress,
+                        color: accent,
+                        size: 280,
+                        showTicks: true,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              status.timeDisplay,
+                              style: TextStyle(
+                                fontSize: 52,
+                                fontWeight: FontWeight.w600,
+                                color: theme.textPrimary,
+                                letterSpacing: 3,
+                                height: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _subtitle(status),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: accent.withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    // Break activity card
+                    if (_isBreak(status.state))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: BreakActivityCard(theme: theme),
+                      ),
+                    if (_isBreak(status.state)) const SizedBox(height: 12),
+                    // Session dots in glass pill
+                    GlassPanel(
+                      color: theme.surface,
+                      borderColor: theme.surfaceBorder,
+                      blur: theme.blur,
+                      borderRadius: 20,
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(4, (i) {
+                          final roundIndex = i + 1;
+                          final isComplete = roundIndex < status.cycle;
+                          final isCurrent = roundIndex == status.cycle &&
+                              status.state != TimerState.idle;
+                          return Container(
+                            width: 10,
+                            height: 10,
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isComplete || isCurrent
+                                  ? accent
+                                  : Colors.white.withValues(alpha: 0.08),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Break activity card
-            if (_isBreak(status.state))
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: BreakActivityCard(theme: theme),
-              ),
-            if (_isBreak(status.state)) const SizedBox(height: 12),
-            // Session dots in glass pill
-            GlassPanel(
-              color: theme.surface,
-              borderColor: theme.surfaceBorder,
-              blur: theme.blur,
-              borderRadius: 20,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(4, (i) {
-                  final roundIndex = i + 1;
-                  final isComplete = roundIndex < status.cycle;
-                  final isCurrent = roundIndex == status.cycle &&
-                      status.state != TimerState.idle;
-                  return Container(
-                    width: 10,
-                    height: 10,
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isComplete || isCurrent
-                          ? accent
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const Spacer(),
-            // Control panel
+            // Control panel (pinned at bottom)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GlassPanel(

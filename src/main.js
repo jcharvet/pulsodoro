@@ -2,6 +2,8 @@ const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 const { open } = window.__TAURI__.dialog;
 const { getCurrentWindow } = window.__TAURI__.window;
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { THEMES, applyTheme } from "./themes.js";
 
 // --- DOM Elements ---
@@ -77,6 +79,9 @@ const fontSelect = document.getElementById("font-select");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const progressRingSvg = document.getElementById("progress-ring");
 const statsDisplay = document.getElementById("stats-display");
+const updateNotification = document.getElementById("update-notification");
+const updateText = document.getElementById("update-text");
+const updateDismiss = document.getElementById("update-dismiss");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
@@ -693,6 +698,60 @@ async function refreshStats() {
   statsDisplay.textContent = `Today: ${stats.today} | Week: ${stats.week}`;
 }
 
+// --- Auto-Update ---
+let pendingUpdate = null;
+
+async function checkForUpdate() {
+  try {
+    const update = await check();
+    if (update) {
+      pendingUpdate = update;
+      updateText.textContent = `v${update.version} available`;
+      updateNotification.classList.remove("hidden");
+    }
+  } catch (e) {
+    console.error("Update check failed:", e);
+  }
+}
+
+updateNotification.addEventListener("click", async (e) => {
+  if (e.target === updateDismiss) return;
+  if (!pendingUpdate) return;
+
+  updateText.textContent = "Downloading...";
+  updateNotification.classList.add("downloading");
+  updateDismiss.classList.add("hidden");
+
+  try {
+    await pendingUpdate.downloadAndInstall((event) => {
+      if (event.event === "Started") {
+        const totalKB = Math.round((event.data.contentLength || 0) / 1024);
+        if (totalKB > 0) {
+          updateText.textContent = `Downloading... (${totalKB} KB)`;
+        }
+      } else if (event.event === "Finished") {
+        updateText.textContent = "Restarting...";
+      }
+    });
+    await relaunch();
+  } catch (e) {
+    console.error("Update install failed:", e);
+    updateText.textContent = "Update failed";
+    updateNotification.classList.remove("downloading");
+    updateDismiss.classList.remove("hidden");
+    setTimeout(() => {
+      if (pendingUpdate) {
+        updateText.textContent = `v${pendingUpdate.version} available`;
+      }
+    }, 5000);
+  }
+});
+
+updateDismiss.addEventListener("click", (e) => {
+  e.stopPropagation();
+  updateNotification.classList.add("hidden");
+});
+
 // Load settings and apply backgrounds on startup
 async function init() {
   const settings = await invoke("get_settings");
@@ -714,6 +773,7 @@ async function init() {
   updateUI(status);
   await refreshStats();
   setBackground(status.state);
+  checkForUpdate();
 }
 
 init();

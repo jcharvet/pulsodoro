@@ -30,8 +30,20 @@
       }
     }
   },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/jcharvet/pulsodoro/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdERDdCRjhDNERBQkJFQjkKUldTNXZxdE5qTC9YZmM2L3RvWS9zVXdEVmJjdFpNZHY4czJzQkRtanhoV0ZjdHFSeElpMkhzNEcK",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",

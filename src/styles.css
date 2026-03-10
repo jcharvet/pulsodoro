@@ -305,6 +305,70 @@ button:disabled {
   letter-spacing: 1px;
 }
 
+/* --- Update Notification --- */
+#update-notification {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(var(--focus-color-rgb), 0.15);
+  border: 1px solid rgba(var(--focus-color-rgb), 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: update-fade-in 0.5s ease;
+}
+
+#update-notification:hover {
+  background: rgba(var(--focus-color-rgb), 0.3);
+  border-color: var(--focus-color);
+}
+
+#update-text {
+  font-size: 0.75rem;
+  color: var(--focus-color);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+#update-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  padding: 0 0.2rem;
+  cursor: pointer;
+  line-height: 1;
+  min-width: auto;
+  text-transform: none;
+  letter-spacing: 0;
+  backdrop-filter: none;
+}
+
+#update-dismiss:hover {
+  color: var(--text-color);
+  background: none;
+}
+
+#update-notification.downloading {
+  cursor: default;
+  pointer-events: none;
+}
+
+#update-notification.downloading #update-text {
+  color: var(--text-muted);
+}
+
+@keyframes update-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.glass #update-notification {
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
 #music-toggle,
 #settings-btn,
 #pin-btn,

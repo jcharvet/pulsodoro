@@ -35,7 +35,7 @@
       "endpoints": [
         "https://github.com/jcharvet/pulsodoro/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGOTNCMTAwNTM2MkE3QUEKUldTcXAySlRBTEdUWHp6ekZ5UVkyN0FBdnI1UEgrVjJzQmZ0S3hFWjdWQitPQ245TWs1N0EvYzMK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYxNkJEM0JEQUI2NTJCNzEKUldSeEsyV3J2ZE5yWWJ4UEtwZnozOHlYNS9vczJhcllJTTMxUk80TXVtb3Rjanpka3QyR005QlEK",
       "windows": {
         "installMode": "passive"
       }

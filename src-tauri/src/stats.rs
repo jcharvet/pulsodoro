@@ -124,7 +124,7 @@ impl SessionStats {
         }
     }
 
-    fn compute_streaks(&self, today: NaiveDate) -> (u32, u32) {
+    pub fn compute_streaks(&self, today: NaiveDate) -> (u32, u32) {
         // Current streak: consecutive days from today going backwards
         let mut current_streak: u32 = 0;
         let mut day = today;
@@ -189,8 +189,7 @@ impl SessionStats {
         (0..weeks)
             .rev()
             .map(|weeks_ago| {
-                let week_start =
-                    this_monday - chrono::Duration::weeks(weeks_ago as i64);
+                let week_start = this_monday - chrono::Duration::weeks(weeks_ago as i64);
                 let sessions: u32 = (0..7)
                     .map(|d| {
                         let date = week_start + chrono::Duration::days(d);

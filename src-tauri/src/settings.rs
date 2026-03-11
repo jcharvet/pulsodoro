@@ -28,6 +28,8 @@ pub struct AppSettings {
     pub ui_style: String,
     #[serde(default = "default_segoe")]
     pub font: String,
+    #[serde(default)]
+    pub gamification_enabled: bool,
 }
 
 fn default_true() -> bool {
@@ -68,6 +70,7 @@ impl Default for AppSettings {
             theme: "midnight".to_string(),
             ui_style: "classic".to_string(),
             font: "segoe".to_string(),
+            gamification_enabled: false,
         }
     }
 }

@@ -1,8 +1,10 @@
+mod gamification;
 mod settings;
 mod stats;
 mod timer;
 mod wallpaper_manager;
 
+use gamification::GamificationState;
 use settings::AppSettings;
 use stats::SessionStats;
 use std::path::PathBuf;
@@ -22,6 +24,7 @@ struct AppState {
     wallpaper: Mutex<WallpaperManager>,
     settings: Mutex<AppSettings>,
     stats: Mutex<SessionStats>,
+    gamification: Mutex<GamificationState>,
     config_dir: PathBuf,
 }
 
@@ -118,6 +121,11 @@ fn get_detailed_stats(state: State<AppState>) -> stats::DetailedStatsResponse {
 }
 
 #[tauri::command]
+fn get_gamification_state(state: State<AppState>) -> gamification::GamificationResponse {
+    state.gamification.lock().unwrap().get_response()
+}
+
+#[tauri::command]
 async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
     if let Some(window) = app.get_webview_window("tidal") {
         let is_minimized = window.is_minimized().unwrap_or(false);
@@ -196,6 +204,29 @@ fn start_timer_loop(app: AppHandle) {
                     .lock()
                     .unwrap()
                     .record_completion(&state.config_dir);
+
+                // Gamification: award XP and check achievements
+                {
+                    let gam_enabled = state.settings.lock().unwrap().gamification_enabled;
+                    if gam_enabled {
+                        let stats = state.stats.lock().unwrap();
+                        let total_sessions: u64 = stats.sessions.values().map(|&v| v as u64).sum();
+                        let today = chrono::Local::now().date_naive();
+                        let (current_streak, _) = stats.compute_streaks(today);
+                        drop(stats);
+
+                        let is_long_break = new_state == timer::TimerState::LongBreak;
+                        let events = state.gamification.lock().unwrap().process_focus_completion(
+                            is_long_break,
+                            total_sessions,
+                            current_streak,
+                            &state.config_dir,
+                        );
+                        if !events.is_empty() {
+                            let _ = app.emit("gamification-events", &events);
+                        }
+                    }
+                }
             }
 
             let change_wallpaper = state.settings.lock().unwrap().change_wallpaper;
@@ -228,6 +259,7 @@ pub fn run() {
         .join("pulsodoro");
     let settings = AppSettings::load(&config_dir);
     let stats = SessionStats::load(&config_dir);
+    let gamification = GamificationState::load(&config_dir);
 
     let timer = PomodoroTimer::new();
     timer.set_durations(
@@ -247,6 +279,7 @@ pub fn run() {
             wallpaper: Mutex::new(WallpaperManager::new()),
             settings: Mutex::new(settings),
             stats: Mutex::new(stats),
+            gamification: Mutex::new(gamification),
             config_dir,
         })
         .setup(|app| {
@@ -326,7 +359,8 @@ pub fn run() {
             get_stats,
             get_detailed_stats,
             toggle_tidal,
-            close_tidal
+            close_tidal,
+            get_gamification_state
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

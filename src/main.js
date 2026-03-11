@@ -89,6 +89,15 @@ const trendChart = document.getElementById("trend-chart");
 const updateNotification = document.getElementById("update-notification");
 const updateText = document.getElementById("update-text");
 const updateDismiss = document.getElementById("update-dismiss");
+const gamificationToggle = document.getElementById("gamification-toggle");
+const gamificationSection = document.getElementById("gamification-section");
+const gamLevel = document.getElementById("gam-level");
+const gamXpCurrent = document.getElementById("gam-xp-current");
+const gamXpNext = document.getElementById("gam-xp-next");
+const gamXpFill = document.getElementById("gam-xp-fill");
+const gamTotalXp = document.getElementById("gam-total-xp");
+const gamAchievementsList = document.getElementById("gam-achievements-list");
+const achievementToastContainer = document.getElementById("achievement-toast-container");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
@@ -99,6 +108,7 @@ let alwaysOnTop = false;
 let musicSource = "youtube";
 let currentTheme = "midnight";
 let pendingTheme = "midnight";
+let gamificationEnabled = false;
 
 // --- Sound Alert ---
 async function playChime() {
@@ -485,6 +495,7 @@ settingsBtn.addEventListener("click", async () => {
   progressRingToggle.checked = settings.show_progress_ring;
   uiStyleSelect.value = settings.ui_style || "classic";
   fontSelect.value = settings.font || "segoe";
+  gamificationToggle.checked = settings.gamification_enabled || false;
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -517,6 +528,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     theme: pendingTheme,
     ui_style: uiStyleSelect.value,
     font: fontSelect.value,
+    gamification_enabled: gamificationToggle.checked,
   };
   await invoke("save_settings", { settings });
 
@@ -527,6 +539,7 @@ saveSettingsBtn.addEventListener("click", async () => {
   setAlwaysOnTop(alwaysOnTopToggle.checked);
   applyUiStyle(uiStyleSelect.value);
   applyFont(fontSelect.value);
+  gamificationEnabled = gamificationToggle.checked;
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
     customYouTubeId = newYtId;
@@ -648,6 +661,16 @@ listen("timer-notification", (event) => {
   refreshStats();
   if (Notification.permission === "granted") {
     new Notification("PulsoDoro", { body: event.payload });
+  }
+});
+
+listen("gamification-events", (event) => {
+  if (!gamificationEnabled) return;
+  const events = event.payload;
+  for (const ev of events) {
+    if (ev.type === "AchievementUnlocked") {
+      showAchievementToast(ev.name, ev.description, ev.xp_reward);
+    }
   }
 });
 
@@ -789,10 +812,90 @@ async function openStatsPanel() {
     statBestStreak.textContent = data.longest_streak;
     renderHeatmap(data.heatmap);
     renderTrend(data.weekly_trend);
+
+    if (gamificationEnabled) {
+      try {
+        const gam = await invoke("get_gamification_state");
+        gamLevel.textContent = gam.current_level;
+        gamXpCurrent.textContent = gam.xp_in_current_level;
+        gamXpNext.textContent = gam.xp_to_next_level;
+        gamTotalXp.textContent = gam.total_xp;
+        const pct =
+          gam.xp_to_next_level > 0
+            ? (gam.xp_in_current_level / gam.xp_to_next_level) * 100
+            : 100;
+        gamXpFill.style.width = `${Math.min(pct, 100)}%`;
+        renderAchievements(gam.achievements);
+        gamificationSection.classList.remove("hidden");
+      } catch (e) {
+        console.error("Failed to load gamification:", e);
+      }
+    } else {
+      gamificationSection.classList.add("hidden");
+    }
+
     statsPanel.classList.remove("hidden");
   } catch (e) {
     console.error("Failed to load stats:", e);
   }
+}
+
+function renderAchievements(achievements) {
+  gamAchievementsList.innerHTML = "";
+  for (const ach of achievements) {
+    const item = document.createElement("div");
+    item.className = "achievement-item" + (ach.unlocked ? " unlocked" : "");
+    const icon = document.createElement("span");
+    icon.className = "achievement-icon";
+    icon.textContent = ach.unlocked ? "\u{1F3C6}" : "\u{1F512}";
+    const info = document.createElement("div");
+    info.className = "achievement-info";
+    const name = document.createElement("div");
+    name.className = "achievement-name";
+    name.textContent = ach.name;
+    const desc = document.createElement("div");
+    desc.className = "achievement-desc";
+    desc.textContent = ach.description;
+    info.appendChild(name);
+    info.appendChild(desc);
+    const xp = document.createElement("span");
+    xp.className = "achievement-xp";
+    xp.textContent = `+${ach.xp_reward} XP`;
+    item.appendChild(icon);
+    item.appendChild(info);
+    item.appendChild(xp);
+    gamAchievementsList.appendChild(item);
+  }
+}
+
+function showAchievementToast(name, description, xpReward) {
+  const toast = document.createElement("div");
+  toast.className = "achievement-toast";
+  const toastIcon = document.createElement("div");
+  toastIcon.className = "achievement-toast-icon";
+  toastIcon.textContent = "\u{1F3C6}";
+  const body = document.createElement("div");
+  body.className = "achievement-toast-body";
+  const title = document.createElement("div");
+  title.className = "achievement-toast-title";
+  title.textContent = name;
+  const desc = document.createElement("div");
+  desc.className = "achievement-toast-desc";
+  desc.textContent = description;
+  const xpLine = document.createElement("div");
+  xpLine.className = "achievement-toast-xp";
+  xpLine.textContent = `+${xpReward} XP`;
+  body.appendChild(title);
+  body.appendChild(desc);
+  body.appendChild(xpLine);
+  toast.appendChild(toastIcon);
+  toast.appendChild(body);
+  achievementToastContainer.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("visible"));
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    toast.addEventListener("transitionend", () => toast.remove());
+  }, 4000);
 }
 
 function closeStatsPanel() {
@@ -879,6 +982,7 @@ async function init() {
   if (settings.always_on_top) setAlwaysOnTop(true);
   applyUiStyle(settings.ui_style || "classic");
   applyFont(settings.font || "segoe");
+  gamificationEnabled = settings.gamification_enabled || false;
 
   const status = await invoke("get_timer_status");
   updateUI(status);

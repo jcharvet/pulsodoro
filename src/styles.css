@@ -1003,6 +1003,200 @@ body.glass .trend-bar {
   margin-bottom: 2px;
 }
 
+/* --- Gamification: XP Bar & Level --- */
+.gamification-level-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.gamification-level {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color);
+  letter-spacing: 0.5px;
+}
+
+.gamification-xp-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.gamification-xp-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
+.gamification-xp-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(var(--focus-color-rgb), 0.6), rgba(var(--focus-color-rgb), 0.9));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.gamification-total-xp {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-align: right;
+  margin-bottom: 0.75rem;
+}
+
+body.glass .gamification-xp-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+body.glass .gamification-xp-fill {
+  border-radius: 5px;
+}
+
+/* --- Gamification: Achievements List --- */
+.gamification-achievements-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.gamification-achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.achievement-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--surface-color);
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+}
+
+.achievement-item.unlocked {
+  opacity: 1;
+  border-color: rgba(var(--focus-color-rgb), 0.4);
+}
+
+.achievement-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.achievement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-name {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.achievement-desc {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.achievement-xp {
+  font-size: 0.7rem;
+  color: var(--focus-color);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+body.glass .achievement-item {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+
+body.glass .achievement-item.unlocked {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(var(--focus-color-rgb), 0.3);
+}
+
+/* --- Gamification: Achievement Toasts --- */
+#achievement-toast-container {
+  position: fixed;
+  bottom: 60px;
+  right: 1rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.achievement-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: var(--settings-bg);
+  border: 1px solid rgba(var(--focus-color-rgb), 0.5);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(var(--blur-amount));
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  pointer-events: auto;
+}
+
+.achievement-toast.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.achievement-toast-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.achievement-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-toast-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--focus-color);
+}
+
+.achievement-toast-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.achievement-toast-xp {
+  font-size: 0.75rem;
+  color: var(--focus-color);
+  font-weight: 500;
+  margin-top: 0.15rem;
+}
+
+body.glass .achievement-toast {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(var(--focus-color-rgb), 0.4);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+}
+
 .hidden {
   display: none !important;
 }

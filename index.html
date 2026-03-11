@@ -232,6 +232,12 @@
                 <option value="arial">Arial</option>
               </select>
             </div>
+            <div class="setting-group">
+              <label>
+                <input type="checkbox" id="gamification-toggle" />
+                Enable XP &amp; Achievements
+              </label>
+            </div>
           </div>
 
           <div id="section-themes" class="settings-section">
@@ -268,6 +274,21 @@
             <div class="stat-value" id="stat-best-streak">0</div>
             <div class="stat-label">Best Streak</div>
           </div>
+        </div>
+        <div id="gamification-section" class="stats-section-block hidden">
+          <div class="stats-section-label">Progress</div>
+          <div class="gamification-level-row">
+            <span class="gamification-level">Level <span id="gam-level">0</span></span>
+            <span class="gamification-xp-text"><span id="gam-xp-current">0</span> / <span id="gam-xp-next">100</span> XP</span>
+          </div>
+          <div class="gamification-xp-bar">
+            <div class="gamification-xp-fill" id="gam-xp-fill"></div>
+          </div>
+          <div class="gamification-total-xp">
+            Total: <span id="gam-total-xp">0</span> XP
+          </div>
+          <div class="gamification-achievements-label">Achievements</div>
+          <div id="gam-achievements-list" class="gamification-achievements-list"></div>
         </div>
         <div class="stats-section-block">
           <div class="stats-section-label">Last 12 Weeks</div>
@@ -308,6 +329,7 @@
       <div id="youtube-player"></div>
     </div>
 
+    <div id="achievement-toast-container"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

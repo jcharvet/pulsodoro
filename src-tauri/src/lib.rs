@@ -113,6 +113,11 @@ fn get_stats(state: State<AppState>) -> stats::StatsResponse {
 }
 
 #[tauri::command]
+fn get_detailed_stats(state: State<AppState>) -> stats::DetailedStatsResponse {
+    state.stats.lock().unwrap().get_detailed_response()
+}
+
+#[tauri::command]
 async fn toggle_tidal(app: AppHandle, url: String) -> Result<bool, String> {
     if let Some(window) = app.get_webview_window("tidal") {
         let is_minimized = window.is_minimized().unwrap_or(false);
@@ -319,6 +324,7 @@ pub fn run() {
             save_settings,
             load_image,
             get_stats,
+            get_detailed_stats,
             toggle_tidal,
             close_tidal
         ])

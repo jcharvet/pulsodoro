@@ -79,6 +79,13 @@ const fontSelect = document.getElementById("font-select");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const progressRingSvg = document.getElementById("progress-ring");
 const statsDisplay = document.getElementById("stats-display");
+const statsPanel = document.getElementById("stats-panel");
+const closeStatsBtn = document.getElementById("close-stats");
+const statTotal = document.getElementById("stat-total");
+const statStreak = document.getElementById("stat-streak");
+const statBestStreak = document.getElementById("stat-best-streak");
+const heatmapGrid = document.getElementById("heatmap-grid");
+const trendChart = document.getElementById("trend-chart");
 const updateNotification = document.getElementById("update-notification");
 const updateText = document.getElementById("update-text");
 const updateDismiss = document.getElementById("update-dismiss");
@@ -658,10 +665,16 @@ document.addEventListener("keydown", async (e) => {
     return;
   }
 
-  // Escape closes settings panel
+  // Escape closes settings panel or stats panel
   if (!settingsPanel.classList.contains("hidden")) {
     if (e.code === "Escape") {
       closeSettingsBtn.click();
+    }
+    return;
+  }
+  if (!statsPanel.classList.contains("hidden")) {
+    if (e.code === "Escape") {
+      closeStatsPanel();
     }
     return;
   }
@@ -697,6 +710,104 @@ async function refreshStats() {
   const stats = await invoke("get_stats");
   statsDisplay.textContent = `Today: ${stats.today} | Week: ${stats.week}`;
 }
+
+// --- Stats Panel ---
+function getHeatmapLevel(count) {
+  if (count === 0) return 0;
+  if (count <= 1) return 1;
+  if (count <= 3) return 2;
+  if (count <= 5) return 3;
+  return 4;
+}
+
+function renderHeatmap(heatmap) {
+  heatmapGrid.innerHTML = "";
+  if (!heatmap || heatmap.length === 0) return;
+  // heatmap is 84 days, oldest first
+  // We need to arrange as columns of 7 (Mon-Sun) per week
+  // First, figure out what day of week the first entry is
+  const firstDate = new Date(heatmap[0].date + "T00:00:00");
+  const firstDow = (firstDate.getDay() + 6) % 7; // 0=Mon, 6=Sun
+
+  // Pad the beginning if the first date isn't Monday
+  for (let i = 0; i < firstDow; i++) {
+    const cell = document.createElement("span");
+    cell.className = "heatmap-cell";
+    cell.dataset.level = "0";
+    cell.style.visibility = "hidden";
+    heatmapGrid.appendChild(cell);
+  }
+
+  for (const day of heatmap) {
+    const cell = document.createElement("span");
+    cell.className = "heatmap-cell";
+    cell.dataset.level = getHeatmapLevel(day.count);
+    cell.title = `${day.date}: ${day.count} session${day.count !== 1 ? "s" : ""}`;
+    heatmapGrid.appendChild(cell);
+  }
+}
+
+function renderTrend(weekly) {
+  trendChart.innerHTML = "";
+  const maxSessions = Math.max(1, ...weekly.map((w) => w.sessions));
+
+  for (const week of weekly) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "trend-bar-wrapper";
+
+    const count = document.createElement("div");
+    count.className = "trend-count";
+    count.textContent = week.sessions || "";
+
+    const track = document.createElement("div");
+    track.className = "trend-bar-track";
+
+    const bar = document.createElement("div");
+    bar.className = "trend-bar";
+    const pct = (week.sessions / maxSessions) * 100;
+    bar.style.height = `${Math.max(pct, 3)}%`;
+    track.appendChild(bar);
+
+    const label = document.createElement("div");
+    label.className = "trend-label";
+    // Show month/day of week start
+    const d = new Date(week.week_start + "T00:00:00");
+    label.textContent = `${d.getMonth() + 1}/${d.getDate()}`;
+
+    wrapper.appendChild(count);
+    wrapper.appendChild(track);
+    wrapper.appendChild(label);
+    trendChart.appendChild(wrapper);
+  }
+}
+
+async function openStatsPanel() {
+  try {
+    const data = await invoke("get_detailed_stats");
+    statTotal.textContent = data.total_sessions;
+    statStreak.textContent = data.current_streak;
+    statBestStreak.textContent = data.longest_streak;
+    renderHeatmap(data.heatmap);
+    renderTrend(data.weekly_trend);
+    statsPanel.classList.remove("hidden");
+  } catch (e) {
+    console.error("Failed to load stats:", e);
+  }
+}
+
+function closeStatsPanel() {
+  statsPanel.classList.add("hidden");
+}
+
+statsDisplay.addEventListener("click", () => {
+  if (statsPanel.classList.contains("hidden")) {
+    openStatsPanel();
+  } else {
+    closeStatsPanel();
+  }
+});
+
+closeStatsBtn.addEventListener("click", closeStatsPanel);
 
 // --- Auto-Update ---
 let pendingUpdate = null;

@@ -32,6 +32,8 @@ pub struct AppSettings {
     pub gamification_enabled: bool,
     #[serde(default = "default_true")]
     pub show_avatar: bool,
+    #[serde(default = "default_tabby")]
+    pub avatar_type: String,
 }
 
 fn default_true() -> bool {
@@ -54,6 +56,10 @@ fn default_segoe() -> String {
     "segoe".to_string()
 }
 
+fn default_tabby() -> String {
+    "tabby".to_string()
+}
+
 impl Default for AppSettings {
     fn default() -> Self {
         Self {
@@ -74,6 +80,7 @@ impl Default for AppSettings {
             font: "segoe".to_string(),
             gamification_enabled: false,
             show_avatar: true,
+            avatar_type: "tabby".to_string(),
         }
     }
 }

@@ -6,6 +6,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { THEMES, applyTheme } from "./themes.js";
 import { AvatarRenderer, getStageForLevel } from "./avatar.js";
+import { AVATAR_TYPES } from "./avatars/types.js";
 
 // --- DOM Elements ---
 const stateLabel = document.getElementById("state-label");
@@ -104,6 +105,7 @@ const achievementToastContainer = document.getElementById(
 const avatarContainer = document.getElementById("avatar-container");
 const statsAvatarContainer = document.getElementById("stats-avatar-container");
 const showAvatarToggle = document.getElementById("show-avatar-toggle");
+const avatarGrid = document.getElementById("avatar-grid");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
@@ -116,6 +118,8 @@ let currentTheme = "midnight";
 let pendingTheme = "midnight";
 let gamificationEnabled = false;
 let showAvatar = true;
+let avatarType = "tabby";
+let pendingAvatarType = "tabby";
 let avatarRenderer = null;
 let currentAvatarStage = 1;
 let currentAvatarMood = "idle";
@@ -509,6 +513,7 @@ settingsBtn.addEventListener("click", async () => {
   fontSelect.value = settings.font || "segoe";
   gamificationToggle.checked = settings.gamification_enabled || false;
   showAvatarToggle.checked = settings.show_avatar ?? true;
+  pendingAvatarType = settings.avatar_type || "tabby";
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -521,6 +526,7 @@ settingsBtn.addEventListener("click", async () => {
   // Load theme
   pendingTheme = settings.theme || "midnight";
   renderThemeCards(pendingTheme);
+  renderAvatarCards(pendingAvatarType);
   settingsPanel.classList.remove("hidden");
 });
 
@@ -543,6 +549,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     font: fontSelect.value,
     gamification_enabled: gamificationToggle.checked,
     show_avatar: showAvatarToggle.checked,
+    avatar_type: pendingAvatarType,
   };
   await invoke("save_settings", { settings });
 
@@ -555,6 +562,7 @@ saveSettingsBtn.addEventListener("click", async () => {
   applyFont(fontSelect.value);
   gamificationEnabled = gamificationToggle.checked;
   showAvatar = showAvatarToggle.checked;
+  avatarType = pendingAvatarType;
   initAvatar();
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
@@ -655,6 +663,43 @@ function renderThemeCards(activeThemeId) {
     });
 
     themeGrid.appendChild(card);
+  }
+}
+
+// --- Avatar Cards ---
+function renderAvatarCards(activeTypeId) {
+  avatarGrid.innerHTML = "";
+  for (const [id, type] of Object.entries(AVATAR_TYPES)) {
+    const card = document.createElement("div");
+    card.className = "avatar-card" + (id === activeTypeId ? " active" : "");
+    card.dataset.type = id;
+
+    const preview = document.createElement("div");
+    preview.className = "avatar-card-preview";
+    const previewRenderer = new AvatarRenderer(preview, 48, id);
+    previewRenderer.render(3, "idle");
+
+    const name = document.createElement("div");
+    name.className = "avatar-card-name";
+    name.textContent = type.name;
+
+    const badge = document.createElement("div");
+    badge.className = "avatar-card-active-badge";
+    badge.textContent = "\u2713 Active";
+
+    card.appendChild(preview);
+    card.appendChild(name);
+    card.appendChild(badge);
+
+    card.addEventListener("click", () => {
+      pendingAvatarType = id;
+      avatarGrid
+        .querySelectorAll(".avatar-card")
+        .forEach((c) => c.classList.remove("active"));
+      card.classList.add("active");
+    });
+
+    avatarGrid.appendChild(card);
   }
 }
 
@@ -871,7 +916,7 @@ async function openStatsPanel() {
         // Stats avatar
         if (showAvatar) {
           const stage = getStageForLevel(gam.current_level);
-          const sr = new AvatarRenderer(statsAvatarContainer, 60);
+          const sr = new AvatarRenderer(statsAvatarContainer, 60, avatarType);
           sr.render(stage, "idle");
         } else {
           statsAvatarContainer.innerHTML = "";
@@ -1022,7 +1067,7 @@ async function initAvatar() {
     try {
       const gam = await invoke("get_gamification_state");
       currentAvatarStage = getStageForLevel(gam.current_level);
-      avatarRenderer = new AvatarRenderer(avatarContainer, 80);
+      avatarRenderer = new AvatarRenderer(avatarContainer, 80, avatarType);
       avatarRenderer.render(currentAvatarStage, currentAvatarMood);
       avatarContainer.classList.remove("hidden");
     } catch (e) {
@@ -1053,6 +1098,8 @@ async function init() {
   applyFont(settings.font || "segoe");
   gamificationEnabled = settings.gamification_enabled || false;
   showAvatar = settings.show_avatar ?? true;
+  avatarType = settings.avatar_type || "tabby";
+  pendingAvatarType = avatarType;
 
   const status = await invoke("get_timer_status");
   updateUI(status);

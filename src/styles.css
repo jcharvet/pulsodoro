@@ -711,6 +711,57 @@ body.long-break .dot.active {
   display: block;
 }
 
+/* --- Avatar Cards --- */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.avatar-card {
+  border: 2px solid var(--surface-border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--surface-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.avatar-card:hover {
+  border-color: var(--text-muted);
+}
+
+.avatar-card.active {
+  border-color: var(--focus-color);
+  box-shadow: 0 0 12px rgba(var(--focus-color-rgb), 0.3);
+}
+
+.avatar-card-preview {
+  width: 48px;
+  height: 48px;
+}
+
+.avatar-card-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.avatar-card-active-badge {
+  display: none;
+  font-size: 0.65rem;
+  color: var(--focus-color);
+}
+
+.avatar-card.active .avatar-card-active-badge {
+  display: block;
+}
+
 /* --- Glassmorphism UI Style --- */
 body.glass #controls button {
   background: rgba(255, 255, 255, 0.08);
@@ -1340,6 +1391,23 @@ body.long-break {
 
 body.glass .avatar-svg {
   filter: drop-shadow(0 0 8px rgba(var(--avatar-color-rgb), 0.4));
+}
+
+body.glass .avatar-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+body.glass .avatar-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.glass .avatar-card.active {
+  border-color: rgba(var(--focus-color-rgb), 0.5);
+  background: rgba(var(--focus-color-rgb), 0.08);
 }
 
 #stats-avatar-container .avatar-svg {

@@ -5,6 +5,7 @@ const { getCurrentWindow } = window.__TAURI__.window;
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { THEMES, applyTheme } from "./themes.js";
+import { AvatarRenderer, getStageForLevel } from "./avatar.js";
 
 // --- DOM Elements ---
 const stateLabel = document.getElementById("state-label");
@@ -97,7 +98,12 @@ const gamXpNext = document.getElementById("gam-xp-next");
 const gamXpFill = document.getElementById("gam-xp-fill");
 const gamTotalXp = document.getElementById("gam-total-xp");
 const gamAchievementsList = document.getElementById("gam-achievements-list");
-const achievementToastContainer = document.getElementById("achievement-toast-container");
+const achievementToastContainer = document.getElementById(
+  "achievement-toast-container",
+);
+const avatarContainer = document.getElementById("avatar-container");
+const statsAvatarContainer = document.getElementById("stats-avatar-container");
+const showAvatarToggle = document.getElementById("show-avatar-toggle");
 
 // --- Current settings state (for the settings panel) ---
 let pendingFocusBg = "";
@@ -109,6 +115,10 @@ let musicSource = "youtube";
 let currentTheme = "midnight";
 let pendingTheme = "midnight";
 let gamificationEnabled = false;
+let showAvatar = true;
+let avatarRenderer = null;
+let currentAvatarStage = 1;
+let currentAvatarMood = "idle";
 
 // --- Sound Alert ---
 async function playChime() {
@@ -169,10 +179,12 @@ function showBreakActivity() {
   activityIcon.textContent = activity.icon;
   activityText.textContent = activity.text;
   breakActivity.classList.remove("hidden");
+  if (avatarRenderer) avatarContainer.classList.add("hidden");
 }
 
 function hideBreakActivity() {
   breakActivity.classList.add("hidden");
+  if (avatarRenderer) avatarContainer.classList.remove("hidden");
 }
 
 // --- Background Images ---
@@ -496,6 +508,7 @@ settingsBtn.addEventListener("click", async () => {
   uiStyleSelect.value = settings.ui_style || "classic";
   fontSelect.value = settings.font || "segoe";
   gamificationToggle.checked = settings.gamification_enabled || false;
+  showAvatarToggle.checked = settings.show_avatar ?? true;
   pendingFocusBg = settings.focus_background;
   pendingBreakBg = settings.break_background;
   focusBgName.textContent = fileNameFromPath(settings.focus_background);
@@ -529,6 +542,7 @@ saveSettingsBtn.addEventListener("click", async () => {
     ui_style: uiStyleSelect.value,
     font: fontSelect.value,
     gamification_enabled: gamificationToggle.checked,
+    show_avatar: showAvatarToggle.checked,
   };
   await invoke("save_settings", { settings });
 
@@ -540,6 +554,8 @@ saveSettingsBtn.addEventListener("click", async () => {
   applyUiStyle(uiStyleSelect.value);
   applyFont(fontSelect.value);
   gamificationEnabled = gamificationToggle.checked;
+  showAvatar = showAvatarToggle.checked;
+  initAvatar();
   const newYtId = extractYouTubeId(youtubeUrlInput.value);
   if (newYtId !== customYouTubeId) {
     customYouTubeId = newYtId;
@@ -654,6 +670,20 @@ musicSourceSelect.addEventListener("change", () => {
 // --- Events from Rust backend ---
 listen("timer-update", (event) => {
   updateUI(event.payload);
+  // Update avatar mood based on timer state
+  if (avatarRenderer) {
+    const moodMap = {
+      Idle: "idle",
+      Focus: "focus",
+      ShortBreak: "short-break",
+      LongBreak: "long-break",
+    };
+    const mood = moodMap[event.payload.state] || "idle";
+    if (mood !== currentAvatarMood) {
+      currentAvatarMood = mood;
+      avatarRenderer.setMood(mood);
+    }
+  }
 });
 
 listen("timer-notification", (event) => {
@@ -670,6 +700,18 @@ listen("gamification-events", (event) => {
   for (const ev of events) {
     if (ev.type === "AchievementUnlocked") {
       showAchievementToast(ev.name, ev.description, ev.xp_reward);
+    }
+    if (ev.type === "LevelUp" && avatarRenderer) {
+      const newStage = getStageForLevel(ev.new_level);
+      if (newStage !== currentAvatarStage) {
+        currentAvatarStage = newStage;
+        avatarContainer.classList.add("avatar-evolving");
+        avatarRenderer.setStage(newStage);
+        setTimeout(
+          () => avatarContainer.classList.remove("avatar-evolving"),
+          600,
+        );
+      }
     }
   }
 });
@@ -826,6 +868,14 @@ async function openStatsPanel() {
             : 100;
         gamXpFill.style.width = `${Math.min(pct, 100)}%`;
         renderAchievements(gam.achievements);
+        // Stats avatar
+        if (showAvatar) {
+          const stage = getStageForLevel(gam.current_level);
+          const sr = new AvatarRenderer(statsAvatarContainer, 60);
+          sr.render(stage, "idle");
+        } else {
+          statsAvatarContainer.innerHTML = "";
+        }
         gamificationSection.classList.remove("hidden");
       } catch (e) {
         console.error("Failed to load gamification:", e);
@@ -966,6 +1016,25 @@ updateDismiss.addEventListener("click", (e) => {
   updateNotification.classList.add("hidden");
 });
 
+// --- Avatar ---
+async function initAvatar() {
+  if (gamificationEnabled && showAvatar) {
+    try {
+      const gam = await invoke("get_gamification_state");
+      currentAvatarStage = getStageForLevel(gam.current_level);
+      avatarRenderer = new AvatarRenderer(avatarContainer, 80);
+      avatarRenderer.render(currentAvatarStage, currentAvatarMood);
+      avatarContainer.classList.remove("hidden");
+    } catch (e) {
+      console.error("Failed to init avatar:", e);
+    }
+  } else {
+    avatarRenderer = null;
+    avatarContainer.innerHTML = "";
+    avatarContainer.classList.add("hidden");
+  }
+}
+
 // Load settings and apply backgrounds on startup
 async function init() {
   const settings = await invoke("get_settings");
@@ -983,11 +1052,13 @@ async function init() {
   applyUiStyle(settings.ui_style || "classic");
   applyFont(settings.font || "segoe");
   gamificationEnabled = settings.gamification_enabled || false;
+  showAvatar = settings.show_avatar ?? true;
 
   const status = await invoke("get_timer_status");
   updateUI(status);
   await refreshStats();
   setBackground(status.state);
+  await initAvatar();
   checkForUpdate();
 }
 

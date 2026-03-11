@@ -67,6 +67,8 @@
         <button id="skip-btn">Skip <kbd>S</kbd></button>
       </div>
 
+      <div id="avatar-container" class="hidden"></div>
+
       <div id="break-activity" class="hidden">
         <div id="activity-card">
           <div id="activity-icon"></div>
@@ -238,6 +240,12 @@
                 Enable XP &amp; Achievements
               </label>
             </div>
+            <div class="setting-group">
+              <label>
+                <input type="checkbox" id="show-avatar-toggle" checked />
+                Show Avatar
+              </label>
+            </div>
           </div>
 
           <div id="section-themes" class="settings-section">
@@ -276,10 +284,16 @@
           </div>
         </div>
         <div id="gamification-section" class="stats-section-block hidden">
+          <div id="stats-avatar-container"></div>
           <div class="stats-section-label">Progress</div>
           <div class="gamification-level-row">
-            <span class="gamification-level">Level <span id="gam-level">0</span></span>
-            <span class="gamification-xp-text"><span id="gam-xp-current">0</span> / <span id="gam-xp-next">100</span> XP</span>
+            <span class="gamification-level"
+              >Level <span id="gam-level">0</span></span
+            >
+            <span class="gamification-xp-text"
+              ><span id="gam-xp-current">0</span> /
+              <span id="gam-xp-next">100</span> XP</span
+            >
           </div>
           <div class="gamification-xp-bar">
             <div class="gamification-xp-fill" id="gam-xp-fill"></div>
@@ -288,7 +302,10 @@
             Total: <span id="gam-total-xp">0</span> XP
           </div>
           <div class="gamification-achievements-label">Achievements</div>
-          <div id="gam-achievements-list" class="gamification-achievements-list"></div>
+          <div
+            id="gam-achievements-list"
+            class="gamification-achievements-list"
+          ></div>
         </div>
         <div class="stats-section-block">
           <div class="stats-section-label">Last 12 Weeks</div>
